@@ -24,7 +24,7 @@
 | Item | Qty | Est. Price | Notes |
 |------|-----|-----------|-------|
 | D4184 MOSFET Module (logic-level) | 1 | $2 | Screw terminals, 3.3V GPIO compatible, nanosecond switching |
-| Current-limiting resistor (24Ω, 5W) | 1 | $1 | Sets LED current to ~700mA. R = (Vsupply - Vf_total) / 0.7A |
+| Current-limiting resistor (3.3Ω, 5W) | 1 | $1 | Sets LED current to ~5A pulsed. R = (Vsupply - Vf_total) / 5A |
 | Vishay VSMA1085400 IR LED (880nm) | 6 | $2 ea ($12) | Wire in series |
 | 24V DC Power Supply (30W) | 1 | $15 | Powers LEDs + Pi via buck converter |
 
