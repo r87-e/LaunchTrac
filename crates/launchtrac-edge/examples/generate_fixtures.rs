@@ -16,6 +16,11 @@ fn main() {
 
     generate_driver_shot(&base.join("driver_shot_001"));
     generate_iron7_shot(&base.join("iron7_shot_001"));
+    generate_wedge_shot(&base.join("wedge_shot_001"));
+    generate_putter_shot(&base.join("putter_shot_001"));
+    generate_mishit_shot(&base.join("mishit_shot_001"));
+    generate_skyball_shot(&base.join("skyball_shot_001"));
+
     println!("\nAll fixtures generated!");
 }
 
@@ -110,6 +115,123 @@ fn generate_iron7_shot(dir: &Path) {
     ];
 
     write_fixture(dir, &frames, "iron7_shot");
+}
+
+fn generate_wedge_shot(dir: &Path) {
+    println!("Generating wedge_shot_001...");
+    fs::create_dir_all(dir).unwrap();
+
+    let frames = vec![
+        FrameSpec {
+            ball_cx: 500.0,
+            ball_cy: 800.0,
+            ball_radius: 88.0,
+            brightness: 220,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 550.0,
+            ball_cy: 650.0,
+            ball_radius: 85.0,
+            brightness: 210,
+            time_offset_us: 800,
+        },
+        FrameSpec {
+            ball_cx: 650.0,
+            ball_cy: 480.0,
+            ball_radius: 82.0,
+            brightness: 200,
+            time_offset_us: 2600,
+        },
+    ];
+
+    write_fixture(dir, &frames, "wedge_shot");
+}
+
+fn generate_putter_shot(dir: &Path) {
+    println!("Generating putter_shot_001...");
+    fs::create_dir_all(dir).unwrap();
+
+    let frames = vec![
+        FrameSpec {
+            ball_cx: 450.0,
+            ball_cy: 780.0,
+            ball_radius: 43.0,
+            brightness: 100,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 460.0,
+            ball_cy: 760.0,
+            ball_radius: 42.0,
+            brightness: 95,
+            time_offset_us: 100,
+        },
+        FrameSpec {
+            ball_cx: 470.0,
+            ball_cy: 740.0,
+            ball_radius: 41.0,
+            brightness: 90,
+            time_offset_us: 200,
+        },
+    ];
+
+    write_fixture(dir, &frames, "putter_shot");
+}
+
+fn generate_mishit_shot(dir: &Path) {
+    println!("Generating mishit_shot_001...");
+    fs::create_dir_all(dir).unwrap();
+
+    let frames = vec![
+        FrameSpec {
+            ball_cx: 300.0,
+            ball_cy: 750.0,
+            ball_radius: 30.0,
+            brightness: 50,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 310.0,
+            ball_cy: 730.0,
+            ball_radius: 31.0,
+            brightness: 55,
+            time_offset_us: 100,
+        },
+    ];
+
+    write_fixture(dir, &frames, "mishit_shot");
+}
+
+fn generate_skyball_shot(dir: &Path) {
+    println!("Generating skyball_shot_001...");
+    fs::create_dir_all(dir).unwrap();
+
+    let frames = vec![
+        FrameSpec {
+            ball_cx: 500.0,
+            ball_cy: 900.0,
+            ball_radius: 90.0,
+            brightness: 230,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 520.0,
+            ball_cy: 800.0,
+            ball_radius: 88.0,
+            brightness: 220,
+            time_offset_us: 700,
+        },
+        FrameSpec {
+            ball_cx: 550.0,
+            ball_cy: 680.0,
+            ball_radius: 85.0,
+            brightness: 210,
+            time_offset_us: 2500,
+        },
+    ];
+
+    write_fixture(dir, &frames, "skyball_shot");
 }
 
 fn write_fixture(dir: &Path, frames: &[FrameSpec], name: &str) {
