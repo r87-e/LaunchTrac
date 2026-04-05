@@ -1,0 +1,30 @@
+# LaunchTrac v2 Default Configuration
+# This file ships with the binary. User overrides go in ~/.launchtrac/config.toml
+
+[hardware]
+enclosure_version = 2
+led_driver = "ldd-700h"
+led_count = 6
+
+[cameras]
+cam1_offset_x_cm = 0.0
+cam1_offset_y_cm = 30.0
+cam1_offset_z_cm = 0.0
+cam2_offset_x_cm = 20.0
+cam2_offset_y_cm = 30.0
+cam2_offset_z_cm = 0.0
+lens_type = "6mm"
+camera_model = "imx296"
+
+[network]
+gspro_address = ""
+e6_address = ""
+cloud_token = ""
+web_port = 8080
+
+[preferences]
+units = "imperial"
+putting_mode = false
+log_level = "info"
+save_debug_images = false
+handedness = "right"

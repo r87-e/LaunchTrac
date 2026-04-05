@@ -1,0 +1,27 @@
+# Cloud services build (API gateway + all services in one binary for simplicity)
+FROM rust:1.82-bookworm AS builder
+
+WORKDIR /app
+COPY . .
+
+RUN cargo build --release -p launchtrac-api -p launchtrac-shot -p launchtrac-auth -p launchtrac-ota -p launchtrac-relay
+
+# Runtime
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy all service binaries
+COPY --from=builder /app/target/release/liblaunchtrac_api.rlib /app/
+COPY --from=builder /app/target/release/liblaunchtrac_shot.rlib /app/
+COPY --from=builder /app/target/release/liblaunchtrac_auth.rlib /app/
+COPY --from=builder /app/target/release/liblaunchtrac_ota.rlib /app/
+COPY --from=builder /app/target/release/liblaunchtrac_relay.rlib /app/
+
+EXPOSE 8080
+
+# Default: run API gateway
+# Override with specific service name via CMD
+ENTRYPOINT ["/app/launchtrac-cloud"]

@@ -1,0 +1,16 @@
+[package]
+name = "launchtrac-hal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Hardware abstraction layer for LaunchTrac — GPIO, PWM, camera capture with mock support"
+
+[dependencies]
+launchtrac-common = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }

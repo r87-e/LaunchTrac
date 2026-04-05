@@ -1,0 +1,36 @@
+{
+  "frame_count": 4,
+  "frames": [
+    {
+      "ball_cx": 500.0,
+      "ball_cy": 750.0,
+      "ball_radius": 86.0,
+      "index": 0,
+      "time_offset_us": 0
+    },
+    {
+      "ball_cx": 580.0,
+      "ball_cy": 630.0,
+      "ball_radius": 83.0,
+      "index": 1,
+      "time_offset_us": 900
+    },
+    {
+      "ball_cx": 680.0,
+      "ball_cy": 490.0,
+      "ball_radius": 79.0,
+      "index": 2,
+      "time_offset_us": 2700
+    },
+    {
+      "ball_cx": 800.0,
+      "ball_cy": 340.0,
+      "ball_radius": 75.0,
+      "index": 3,
+      "time_offset_us": 5700
+    }
+  ],
+  "height": 1088,
+  "name": "iron7_shot",
+  "width": 1456
+}

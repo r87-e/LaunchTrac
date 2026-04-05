@@ -1,0 +1,43 @@
+{
+  "frame_count": 5,
+  "frames": [
+    {
+      "ball_cx": 400.0,
+      "ball_cy": 700.0,
+      "ball_radius": 85.0,
+      "index": 0,
+      "time_offset_us": 0
+    },
+    {
+      "ball_cx": 520.0,
+      "ball_cy": 620.0,
+      "ball_radius": 82.0,
+      "index": 1,
+      "time_offset_us": 700
+    },
+    {
+      "ball_cx": 680.0,
+      "ball_cy": 520.0,
+      "ball_radius": 78.0,
+      "index": 2,
+      "time_offset_us": 2500
+    },
+    {
+      "ball_cx": 900.0,
+      "ball_cy": 400.0,
+      "ball_radius": 74.0,
+      "index": 3,
+      "time_offset_us": 5500
+    },
+    {
+      "ball_cx": 1100.0,
+      "ball_cy": 310.0,
+      "ball_radius": 70.0,
+      "index": 4,
+      "time_offset_us": 7700
+    }
+  ],
+  "height": 1088,
+  "name": "driver_shot",
+  "width": 1456
+}
