@@ -1,0 +1,36 @@
+{
+  "frame_count": 4,
+  "frames": [
+    {
+      "ball_cx": 400.0,
+      "ball_cy": 800.0,
+      "ball_radius": 88.0,
+      "index": 0,
+      "time_offset_us": 0
+    },
+    {
+      "ball_cx": 450.0,
+      "ball_cy": 550.0,
+      "ball_radius": 82.0,
+      "index": 1,
+      "time_offset_us": 1500
+    },
+    {
+      "ball_cx": 520.0,
+      "ball_cy": 300.0,
+      "ball_radius": 75.0,
+      "index": 2,
+      "time_offset_us": 3500
+    },
+    {
+      "ball_cx": 600.0,
+      "ball_cy": 100.0,
+      "ball_radius": 68.0,
+      "index": 3,
+      "time_offset_us": 6000
+    }
+  ],
+  "height": 1088,
+  "name": "wedge_shot",
+  "width": 1456
+}
