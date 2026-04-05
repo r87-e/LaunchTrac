@@ -101,12 +101,14 @@ impl MockHardware {
             if data.len() != expected_size {
                 return Err(LaunchTracError::Hardware(format!(
                     "Frame {} size mismatch: expected {} bytes, got {}",
-                    frame_meta.index, expected_size, data.len()
+                    frame_meta.index,
+                    expected_size,
+                    data.len()
                 )));
             }
 
-            let timestamp = base_time
-                + chrono::Duration::microseconds(frame_meta.time_offset_us as i64);
+            let timestamp =
+                base_time + chrono::Duration::microseconds(frame_meta.time_offset_us as i64);
 
             frames.push(ImageFrame {
                 data,
@@ -282,8 +284,14 @@ mod tests {
     fn mock_records_pulse_train() {
         let mock = MockHardware::new();
         let pulses = vec![
-            PulseTiming { delay_us: 700, duration_us: 20 },
-            PulseTiming { delay_us: 1800, duration_us: 20 },
+            PulseTiming {
+                delay_us: 700,
+                duration_us: 20,
+            },
+            PulseTiming {
+                delay_us: 1800,
+                duration_us: 20,
+            },
         ];
         mock.send_pulse_train(&pulses).unwrap();
 

@@ -1,4 +1,4 @@
-# LaunchTrac v2
+# LaunchTrac
 
 An open-source DIY golf launch monitor that measures ball speed, launch angles, and spin — for under $200 in parts.
 
@@ -6,7 +6,7 @@ Built in Rust. No custom PCB. Cloud-connected. Compatible with GSPro and E6/TruG
 
 ## What It Does
 
-LaunchTrac v2 uses a Raspberry Pi 5, two global shutter cameras, and IR LED strobing to capture a golf ball in flight. It measures:
+LaunchTrac uses two global shutter cameras and IR LED strobing to capture a golf ball in flight. It measures:
 
 - **Ball speed** (mph)
 - **Vertical launch angle** (degrees)
@@ -22,8 +22,8 @@ You can run the full pipeline on your laptop using synthetic test data:
 
 ```bash
 # Clone and build
-git clone https://github.com/r87-e/launchtrac-v2.git
-cd launchtrac-v2
+git clone https://github.com/r87-e/LaunchTrac.git
+cd LaunchTrac
 cargo build
 
 # Run all tests (33 tests, full vision pipeline)
@@ -63,7 +63,7 @@ Seven actors, zero shared mutable state, typed message channels.
 
 | Crate | Purpose |
 |-------|---------|
-| `launchtrac-common` | Shared types, config (30 params vs LaunchTrac v1's 280+), errors |
+| `launchtrac-common` | Shared types, config (30 params vs PiTrac v1's 280+), errors |
 | `launchtrac-hal` | Hardware abstraction — GPIO, PWM, cameras + MockHardware for testing |
 | `launchtrac-vision` | Ball detection (YOLO/Hough), trajectory math, Gabor filter, spin estimation |
 | `launchtrac-sim-proto` | GSPro (port 921) and E6/TruGolf (port 2483) protocol implementations |
@@ -88,7 +88,7 @@ Seven actors, zero shared mutable state, typed message channels.
 | Wiring + connectors | $10 |
 | 3D printed enclosure | Self-printed |
 
-**No soldering a custom PCB.** The Meanwell LDD-700H is a constant-current LED driver that accepts 3.3V PWM directly from the Pi's GPIO. It replaces the entire custom connector board from LaunchTrac v1.
+**No soldering a custom PCB.** The Meanwell LDD-700H is a constant-current LED driver that accepts 3.3V PWM directly from the Pi's GPIO. It replaces the entire custom connector board from PiTrac v1.
 
 See [hardware/bom/](hardware/bom/) for the full bill of materials with wiring diagram.
 
@@ -149,7 +149,7 @@ just build-pi       # Cross-compile for Raspberry Pi 5
 
 ### Testing Without Hardware
 
-The `MockHardware` system replays captured image sequences through the full pipeline. Generate synthetic fixtures or use real images captured from a LaunchTrac v1:
+The `MockHardware` system replays captured image sequences through the full pipeline. Generate synthetic fixtures or use real images captured from a PiTrac v1:
 
 ```bash
 cargo run -p launchtrac-edge --example generate_fixtures
@@ -159,7 +159,7 @@ cargo run -p launchtrac-edge --example process_fixture -- tests/fixtures/driver_
 ### Project Structure
 
 ```
-launchtrac-v2/
+LaunchTrac/
   crates/              # Rust workspace (11 crates)
   dashboard/           # SvelteKit web UI
   ml/                  # ML model training + exported models
@@ -170,26 +170,12 @@ launchtrac-v2/
   .github/workflows/   # CI/CD pipeline
 ```
 
-## How It Differs from LaunchTrac v1
-
-| Aspect | LaunchTrac v1 | LaunchTrac v2 |
-|--------|-----------|-----------|
-| Language | C++ (44K lines) | Rust (4K lines, growing) |
-| Architecture | Monolithic FSM | Actor pipeline (7 actors) |
-| Config | 280+ JSON params | 30 TOML params |
-| Custom PCB | Required | Eliminated |
-| Spin detection | Brute-force 3D search (~20s) | ML model (<50ms target) |
-| Cloud | None | Fly.io (shots, OTA, relay) |
-| Testing | Requires hardware | MockHardware + fixtures |
-| Dashboard | Python/FastAPI | SvelteKit + Tailwind |
-| Cost | ~$250 | ~$195 |
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Ways to help right now:**
-- Test the pipeline with real IR ball images from LaunchTrac v1 hardware
+- Test the pipeline with real IR ball images from PiTrac v1 hardware
 - Improve ball detection accuracy on edge cases
 - Train the ML spin estimation model
 - Build out the cloud services
@@ -220,7 +206,7 @@ This is an early-stage rewrite. The pipeline works end-to-end on synthetic data.
 
 ## Acknowledgments
 
-Inspired by [LaunchTrac](https://github.com/jeshernandez/LaunchTrac), the world's first fully open-source DIY golf launch monitor. LaunchTrac v2 is a ground-up rewrite with a different architecture, language, and hardware approach.
+Inspired by [PiTrac](https://github.com/jeshernandez/PiTrac), the world's first fully open-source DIY golf launch monitor.
 
 ## License
 

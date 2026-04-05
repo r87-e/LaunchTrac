@@ -29,7 +29,7 @@ impl CameraCalibration {
             intrinsic_matrix: [
                 1200.0, 0.0, 728.0, // fx, 0, cx
                 0.0, 1200.0, 544.0, // 0, fy, cy
-                0.0, 0.0, 1.0,      // 0, 0, 1
+                0.0, 0.0, 1.0, // 0, 0, 1
             ],
             distortion_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0], // Will be refined per-unit
             focal_length_mm: 6.0,
@@ -40,9 +40,7 @@ impl CameraCalibration {
     /// Pre-computed calibration for InnoMaker IMX296 + 3.6mm M12 lens
     pub fn imx296_3_6mm() -> Self {
         Self {
-            intrinsic_matrix: [
-                720.0, 0.0, 728.0, 0.0, 720.0, 544.0, 0.0, 0.0, 1.0,
-            ],
+            intrinsic_matrix: [720.0, 0.0, 728.0, 0.0, 720.0, 544.0, 0.0, 0.0, 1.0],
             distortion_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0],
             focal_length_mm: 3.6,
             ball_radius_at_40cm: 45.0,

@@ -9,16 +9,14 @@
 use std::env;
 
 use launchtrac_common::types::ClubType;
-use launchtrac_hal::mock::MockHardware;
 use launchtrac_hal::CameraCapture;
+use launchtrac_hal::mock::MockHardware;
 use launchtrac_sim_proto::gspro::GsProInterface;
 use launchtrac_vision::VisionPipeline;
 
 fn main() {
     // Init logging
-    tracing_subscriber::fmt()
-        .with_env_filter("info")
-        .init();
+    tracing_subscriber::fmt().with_env_filter("info").init();
 
     let args: Vec<String> = env::args().collect();
     let fixture_path = args.get(1).unwrap_or_else(|| {
@@ -77,11 +75,18 @@ fn main() {
             println!("  SHOT RESULT");
             println!("========================================");
             println!();
-            println!("  Ball Detections: {}/{} frames", analysis.detections.len(), frames.len());
+            println!(
+                "  Ball Detections: {}/{} frames",
+                analysis.detections.len(),
+                frames.len()
+            );
             for (i, det) in analysis.detections.iter().enumerate() {
                 println!(
                     "    [{i}] pos=({:.1}, {:.1})  radius={:.1}px  confidence={:.0}%",
-                    det.cx, det.cy, det.radius, det.confidence * 100.0
+                    det.cx,
+                    det.cy,
+                    det.radius,
+                    det.confidence * 100.0
                 );
             }
 
@@ -99,7 +104,11 @@ fn main() {
             println!();
             println!("  --- Meta ---");
             println!("  Confidence:    {:.0}%", analysis.confidence * 100.0);
-            println!("  Pipeline time: {:.1}s ({} ms)", elapsed.as_secs_f64(), elapsed.as_millis());
+            println!(
+                "  Pipeline time: {:.1}s ({} ms)",
+                elapsed.as_secs_f64(),
+                elapsed.as_millis()
+            );
 
             // Convert to ShotData (what simulators receive)
             let shot = analysis.to_shot_data(1, ClubType::Driver);

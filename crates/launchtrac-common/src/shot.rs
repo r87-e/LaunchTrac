@@ -63,13 +63,14 @@ impl ShotData {
         processing_time_ms: u32,
     ) -> Self {
         let spin_axis_deg = if backspin_rpm != 0 {
-            (sidespin_rpm as f64 / backspin_rpm as f64).atan().to_degrees()
+            (sidespin_rpm as f64 / backspin_rpm as f64)
+                .atan()
+                .to_degrees()
         } else {
             0.0
         };
 
-        let total_spin_rpm =
-            ((backspin_rpm as f64).powi(2) + (sidespin_rpm as f64).powi(2)).sqrt();
+        let total_spin_rpm = ((backspin_rpm as f64).powi(2) + (sidespin_rpm as f64).powi(2)).sqrt();
 
         Self {
             id: Uuid::new_v4(),

@@ -73,10 +73,7 @@ impl Pipeline {
 
     /// Run the pipeline — this is the main loop
     pub async fn run(self) -> Result<(), LaunchTracError> {
-        tracing::info!(
-            mock = self.mock_mode,
-            "Starting pipeline"
-        );
+        tracing::info!(mock = self.mock_mode, "Starting pipeline");
 
         // Create inter-actor channels
         let (frame_tx, frame_rx) = mpsc::channel::<ImageFrame>(16);
@@ -88,33 +85,25 @@ impl Pipeline {
         let camera1_handle = tokio::spawn({
             let mock = self.mock_mode;
             let fixture = self.fixture_path.clone();
-            async move {
-                camera1::run(mock, fixture, frame_tx).await
-            }
+            async move { camera1::run(mock, fixture, frame_tx).await }
         });
 
-        let motion_handle = tokio::spawn(async move {
-            motion_detector::run(frame_rx, motion_tx).await
-        });
+        let motion_handle =
+            tokio::spawn(async move { motion_detector::run(frame_rx, motion_tx).await });
 
         let strobe_handle = tokio::spawn({
             let config = self.config.clone();
             let mock = self.mock_mode;
-            async move {
-                strobe_controller::run(config, mock, motion_rx, strobed_tx).await
-            }
+            async move { strobe_controller::run(config, mock, motion_rx, strobed_tx).await }
         });
 
-        let processor_handle = tokio::spawn(async move {
-            image_processor::run(strobed_rx, shot_tx).await
-        });
+        let processor_handle =
+            tokio::spawn(async move { image_processor::run(strobed_rx, shot_tx).await });
 
         let router_handle = tokio::spawn({
             let config = self.config.clone();
             let broadcast_tx = self.shot_tx.clone();
-            async move {
-                results_router::run(config, shot_rx, broadcast_tx).await
-            }
+            async move { results_router::run(config, shot_rx, broadcast_tx).await }
         });
 
         // Wait for all actors

@@ -421,9 +421,24 @@ mod tests {
     #[test]
     fn nms_removes_overlapping() {
         let mut dets = vec![
-            BallDetection { cx: 100.0, cy: 100.0, radius: 50.0, confidence: 0.9 },
-            BallDetection { cx: 110.0, cy: 105.0, radius: 48.0, confidence: 0.7 },
-            BallDetection { cx: 500.0, cy: 500.0, radius: 50.0, confidence: 0.8 },
+            BallDetection {
+                cx: 100.0,
+                cy: 100.0,
+                radius: 50.0,
+                confidence: 0.9,
+            },
+            BallDetection {
+                cx: 110.0,
+                cy: 105.0,
+                radius: 48.0,
+                confidence: 0.7,
+            },
+            BallDetection {
+                cx: 500.0,
+                cy: 500.0,
+                radius: 50.0,
+                confidence: 0.8,
+            },
         ];
         nms(&mut dets, 0.5);
         assert_eq!(dets.len(), 2); // First two overlap, third kept
@@ -445,6 +460,9 @@ mod tests {
 
         let best = &detections[0];
         let dist = ((best.cx - 200.0).powi(2) + (best.cy - 200.0).powi(2)).sqrt();
-        assert!(dist < 60.0, "Detection should be near ball center, got dist={dist}");
+        assert!(
+            dist < 60.0,
+            "Detection should be near ball center, got dist={dist}"
+        );
     }
 }

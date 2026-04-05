@@ -33,11 +33,41 @@ fn generate_driver_shot(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
 
     let frames = vec![
-        FrameSpec { ball_cx: 400.0, ball_cy: 700.0, ball_radius: 85.0, brightness: 210, time_offset_us: 0 },
-        FrameSpec { ball_cx: 520.0, ball_cy: 620.0, ball_radius: 82.0, brightness: 200, time_offset_us: 700 },
-        FrameSpec { ball_cx: 680.0, ball_cy: 520.0, ball_radius: 78.0, brightness: 195, time_offset_us: 2500 },
-        FrameSpec { ball_cx: 900.0, ball_cy: 400.0, ball_radius: 74.0, brightness: 185, time_offset_us: 5500 },
-        FrameSpec { ball_cx: 1100.0, ball_cy: 310.0, ball_radius: 70.0, brightness: 175, time_offset_us: 7700 },
+        FrameSpec {
+            ball_cx: 400.0,
+            ball_cy: 700.0,
+            ball_radius: 85.0,
+            brightness: 210,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 520.0,
+            ball_cy: 620.0,
+            ball_radius: 82.0,
+            brightness: 200,
+            time_offset_us: 700,
+        },
+        FrameSpec {
+            ball_cx: 680.0,
+            ball_cy: 520.0,
+            ball_radius: 78.0,
+            brightness: 195,
+            time_offset_us: 2500,
+        },
+        FrameSpec {
+            ball_cx: 900.0,
+            ball_cy: 400.0,
+            ball_radius: 74.0,
+            brightness: 185,
+            time_offset_us: 5500,
+        },
+        FrameSpec {
+            ball_cx: 1100.0,
+            ball_cy: 310.0,
+            ball_radius: 70.0,
+            brightness: 175,
+            time_offset_us: 7700,
+        },
     ];
 
     write_fixture(dir, &frames, "driver_shot");
@@ -49,10 +79,34 @@ fn generate_iron7_shot(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
 
     let frames = vec![
-        FrameSpec { ball_cx: 500.0, ball_cy: 750.0, ball_radius: 86.0, brightness: 215, time_offset_us: 0 },
-        FrameSpec { ball_cx: 580.0, ball_cy: 630.0, ball_radius: 83.0, brightness: 205, time_offset_us: 900 },
-        FrameSpec { ball_cx: 680.0, ball_cy: 490.0, ball_radius: 79.0, brightness: 195, time_offset_us: 2700 },
-        FrameSpec { ball_cx: 800.0, ball_cy: 340.0, ball_radius: 75.0, brightness: 185, time_offset_us: 5700 },
+        FrameSpec {
+            ball_cx: 500.0,
+            ball_cy: 750.0,
+            ball_radius: 86.0,
+            brightness: 215,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 580.0,
+            ball_cy: 630.0,
+            ball_radius: 83.0,
+            brightness: 205,
+            time_offset_us: 900,
+        },
+        FrameSpec {
+            ball_cx: 680.0,
+            ball_cy: 490.0,
+            ball_radius: 79.0,
+            brightness: 195,
+            time_offset_us: 2700,
+        },
+        FrameSpec {
+            ball_cx: 800.0,
+            ball_cy: 340.0,
+            ball_radius: 75.0,
+            brightness: 185,
+            time_offset_us: 5700,
+        },
     ];
 
     write_fixture(dir, &frames, "iron7_shot");
@@ -73,15 +127,24 @@ fn write_fixture(dir: &Path, frames: &[FrameSpec], name: &str) {
             "time_offset_us": f.time_offset_us
         })).collect::<Vec<_>>()
     });
-    fs::write(dir.join("metadata.json"), serde_json::to_string_pretty(&meta).unwrap()).unwrap();
+    fs::write(
+        dir.join("metadata.json"),
+        serde_json::to_string_pretty(&meta).unwrap(),
+    )
+    .unwrap();
 
     for (i, spec) in frames.iter().enumerate() {
         let image = render_frame(spec);
         let path = dir.join(format!("frame_{:03}.raw", i));
         fs::write(&path, &image).unwrap();
-        println!("  frame_{:03}.raw  ball@({:.0},{:.0}) r={:.0}  [{:.1} MB]",
-            i, spec.ball_cx, spec.ball_cy, spec.ball_radius,
-            image.len() as f64 / 1_000_000.0);
+        println!(
+            "  frame_{:03}.raw  ball@({:.0},{:.0}) r={:.0}  [{:.1} MB]",
+            i,
+            spec.ball_cx,
+            spec.ball_cy,
+            spec.ball_radius,
+            image.len() as f64 / 1_000_000.0
+        );
     }
 }
 

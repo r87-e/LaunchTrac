@@ -1,7 +1,7 @@
+use axum::Router;
 use axum::extract::State;
 use axum::response::Json;
 use axum::routing::{get, post};
-use axum::Router;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 

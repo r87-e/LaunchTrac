@@ -294,7 +294,17 @@ mod tests {
     #[test]
     fn shot_message_format_matches_gspro_spec() {
         let iface = GsProInterface::new("127.0.0.1");
-        let shot = ShotData::new(1, 150.0, 12.5, -1.2, 2800, -200, ClubType::Driver, 0.95, 250);
+        let shot = ShotData::new(
+            1,
+            150.0,
+            12.5,
+            -1.2,
+            2800,
+            -200,
+            ClubType::Driver,
+            0.95,
+            250,
+        );
 
         let msg = iface.build_shot_message(&shot);
         let json = serde_json::to_string_pretty(&msg).unwrap();

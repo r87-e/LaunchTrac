@@ -73,11 +73,7 @@ impl PwmStrobe for PiPwmStrobe {
     }
 
     fn trigger_camera(&self, duration_us: u64) -> Result<(), LaunchTracError> {
-        tracing::debug!(
-            pin = self.trigger_pin,
-            duration_us,
-            "Camera trigger pulse"
-        );
+        tracing::debug!(pin = self.trigger_pin, duration_us, "Camera trigger pulse");
         // TODO: GPIO25 HIGH for duration_us, then LOW
         Ok(())
     }

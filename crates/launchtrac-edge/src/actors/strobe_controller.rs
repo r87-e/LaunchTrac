@@ -8,7 +8,9 @@ use tokio::sync::mpsc;
 const DRIVER_PULSE_DELAYS_MS: &[f64] = &[0.7, 1.8, 3.0, 2.2, 3.0, 7.1, 4.0, 4.0];
 
 /// Default strobe pulse vector for putting.
-const PUTTER_PULSE_DELAYS_MS: &[f64] = &[2.5, 5.0, 8.0, 10.5, 8.5, 21.0, 21.0, 21.0, 21.0, 21.0, 21.0, 21.0];
+const PUTTER_PULSE_DELAYS_MS: &[f64] = &[
+    2.5, 5.0, 8.0, 10.5, 8.5, 21.0, 21.0, 21.0, 21.0, 21.0, 21.0, 21.0,
+];
 
 /// Pulse width in microseconds (each IR flash duration)
 const PULSE_WIDTH_US: u64 = 20;

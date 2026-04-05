@@ -41,8 +41,7 @@ async fn main() -> anyhow::Result<()> {
     // Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new(&cli.log_level)),
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&cli.log_level)),
         )
         .init();
 
@@ -70,15 +69,11 @@ async fn main() -> anyhow::Result<()> {
     let web_handle = tokio::spawn({
         let config = config.clone();
         let shot_rx = pipeline.shot_subscriber();
-        async move {
-            web::start_server(config, shot_rx).await
-        }
+        async move { web::start_server(config, shot_rx).await }
     });
 
     // Run the main pipeline
-    let pipeline_handle = tokio::spawn(async move {
-        pipeline.run().await
-    });
+    let pipeline_handle = tokio::spawn(async move { pipeline.run().await });
 
     // Wait for either to finish (or ctrl-c)
     tokio::select! {

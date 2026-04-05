@@ -44,7 +44,13 @@ impl SpinEstimator {
         let gabor_kernels = (0..NUM_ORIENTATIONS)
             .map(|i| {
                 let theta = (i as f64) * std::f64::consts::PI / NUM_ORIENTATIONS as f64;
-                generate_gabor_kernel(GABOR_KERNEL_SIZE, GABOR_SIGMA, theta, GABOR_WAVELENGTH, GABOR_GAMMA)
+                generate_gabor_kernel(
+                    GABOR_KERNEL_SIZE,
+                    GABOR_SIGMA,
+                    theta,
+                    GABOR_WAVELENGTH,
+                    GABOR_GAMMA,
+                )
             })
             .collect();
 
@@ -309,7 +315,9 @@ fn generate_gabor_kernel(
             let x_theta = xf * cos_t + yf * sin_t;
             let y_theta = -xf * sin_t + yf * cos_t;
 
-            let gaussian = (-0.5 * ((x_theta.powi(2) + gamma.powi(2) * y_theta.powi(2)) / sigma.powi(2))).exp();
+            let gaussian = (-0.5
+                * ((x_theta.powi(2) + gamma.powi(2) * y_theta.powi(2)) / sigma.powi(2)))
+            .exp();
             let sinusoid = (2.0 * std::f64::consts::PI * x_theta / wavelength).cos();
 
             kernel[y * size + x] = gaussian * sinusoid;
@@ -394,8 +402,7 @@ fn rotate_image_approx(
                 let v01 = pixels[(sy_i + 1) * size + sx_i];
                 let v11 = pixels[(sy_i + 1) * size + sx_i + 1];
 
-                output[y * size + x] =
-                    v00 * (1.0 - fx) * (1.0 - fy)
+                output[y * size + x] = v00 * (1.0 - fx) * (1.0 - fy)
                     + v10 * fx * (1.0 - fy)
                     + v01 * (1.0 - fx) * fy
                     + v11 * fx * fy;
@@ -429,11 +436,7 @@ fn normalized_cross_correlation(a: &[f64], b: &[f64]) -> f64 {
     }
 
     let den = (den_a * den_b).sqrt();
-    if den > 1e-10 {
-        num / den
-    } else {
-        0.0
-    }
+    if den > 1e-10 { num / den } else { 0.0 }
 }
 
 /// Convert rotation angle to RPM given time delta
@@ -482,14 +485,20 @@ mod tests {
         // Verify the kernel has both positive and negative values (bandpass behavior).
         let has_positive = kernel.iter().any(|&v| v > 0.01);
         let has_negative = kernel.iter().any(|&v| v < -0.01);
-        assert!(has_positive && has_negative, "Gabor kernel should have both positive and negative lobes");
+        assert!(
+            has_positive && has_negative,
+            "Gabor kernel should have both positive and negative lobes"
+        );
     }
 
     #[test]
     fn ncc_identical_images() {
         let a = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let ncc = normalized_cross_correlation(&a, &a);
-        assert!((ncc - 1.0).abs() < 1e-6, "NCC of identical should be 1.0, got {ncc}");
+        assert!(
+            (ncc - 1.0).abs() < 1e-6,
+            "NCC of identical should be 1.0, got {ncc}"
+        );
     }
 
     #[test]
@@ -497,7 +506,10 @@ mod tests {
         let a = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let b = vec![5.0, 4.0, 3.0, 2.0, 1.0];
         let ncc = normalized_cross_correlation(&a, &b);
-        assert!((ncc - (-1.0)).abs() < 1e-6, "NCC of inverse should be -1.0, got {ncc}");
+        assert!(
+            (ncc - (-1.0)).abs() < 1e-6,
+            "NCC of inverse should be -1.0, got {ncc}"
+        );
     }
 
     #[test]

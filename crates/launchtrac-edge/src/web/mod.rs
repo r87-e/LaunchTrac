@@ -1,12 +1,12 @@
-use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::Router;
 use axum::extract::State;
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::Json;
 use axum::routing::get;
-use axum::Router;
 use launchtrac_common::config::Config;
 use launchtrac_common::shot::ShotData;
 use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::{RwLock, broadcast};
 
 /// Shared state for the web server
 struct AppState {

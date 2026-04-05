@@ -1,8 +1,8 @@
 use launchtrac_common::config::Config;
 use launchtrac_common::shot::ShotData;
+use launchtrac_sim_proto::SimulatorInterface;
 use launchtrac_sim_proto::e6::E6Interface;
 use launchtrac_sim_proto::gspro::GsProInterface;
-use launchtrac_sim_proto::SimulatorInterface;
 use tokio::sync::{broadcast, mpsc};
 
 /// Results router actor — fans out shot data to all connected outputs.

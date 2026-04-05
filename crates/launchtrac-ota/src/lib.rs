@@ -1,7 +1,7 @@
+use axum::Router;
 use axum::extract::{Path, State};
 use axum::response::Json;
 use axum::routing::get;
-use axum::Router;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 

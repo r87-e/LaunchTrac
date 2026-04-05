@@ -1,8 +1,8 @@
 use launchtrac_common::error::LaunchTracError;
 use launchtrac_hal::ImageFrame;
 
-use crate::calibration::CameraCalibration;
 use crate::BallDetection;
+use crate::calibration::CameraCalibration;
 
 /// Computed ball trajectory from multi-frame analysis
 #[derive(Debug, Clone)]
@@ -49,10 +49,7 @@ pub fn compute_trajectory(
     // Time delta between first and last frame in seconds
     let first_ts = frames[0].timestamp;
     let last_ts = frames[frames.len() - 1].timestamp;
-    let time_delta_s = (last_ts - first_ts)
-        .num_microseconds()
-        .unwrap_or(1) as f64
-        / 1_000_000.0;
+    let time_delta_s = (last_ts - first_ts).num_microseconds().unwrap_or(1) as f64 / 1_000_000.0;
 
     if time_delta_s <= 0.0 {
         return Err(LaunchTracError::Vision(
@@ -213,7 +210,10 @@ mod tests {
         // Ball at ~40cm should have radius ~87px (from LaunchTrac v1 calibration)
         let depth = estimate_depth(focal_px, 87.0);
         // Expected: (1739 * 0.04267) / 174 ≈ 0.426m
-        assert!((depth - 0.426).abs() < 0.05, "Depth should be ~0.43m, got {depth}");
+        assert!(
+            (depth - 0.426).abs() < 0.05,
+            "Depth should be ~0.43m, got {depth}"
+        );
     }
 
     #[test]

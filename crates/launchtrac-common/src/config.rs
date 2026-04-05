@@ -186,8 +186,9 @@ impl Config {
 
     fn merge_from_file(&mut self, path: &Path) -> Result<(), LaunchTracError> {
         let content = std::fs::read_to_string(path)?;
-        let overrides: Config = toml::from_str(&content)
-            .map_err(|e| LaunchTracError::Config(format!("Failed to parse {}: {e}", path.display())))?;
+        let overrides: Config = toml::from_str(&content).map_err(|e| {
+            LaunchTracError::Config(format!("Failed to parse {}: {e}", path.display()))
+        })?;
         // For now, full replacement per section if present in file.
         // A more sophisticated merge could be added later.
         *self = overrides;
