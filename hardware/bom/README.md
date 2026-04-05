@@ -23,7 +23,8 @@
 
 | Item | Qty | Est. Price | Notes |
 |------|-----|-----------|-------|
-| Meanwell LDD-700H LED Driver | 1 | $8 | Constant-current, PWM input, 9-56V |
+| D4184 MOSFET Module (logic-level) | 1 | $2 | Screw terminals, 3.3V GPIO compatible, nanosecond switching |
+| Current-limiting resistor (24Ω, 5W) | 1 | $1 | Sets LED current to ~700mA. R = (Vsupply - Vf_total) / 0.7A |
 | Vishay VSMA1085400 IR LED (880nm) | 6 | $2 ea ($12) | Wire in series |
 | 24V DC Power Supply (30W) | 1 | $15 | Powers LEDs + Pi via buck converter |
 
@@ -44,10 +45,10 @@
 ## Wiring Diagram
 
 ```
-24V PSU ──> Meanwell LDD-700H ──> 6x IR LEDs (series)
-                    ^ PWM input
-                    |
-              GPIO 18 (PWM0)
+24V PSU ──> 24Ω Resistor ──> 6x IR LEDs (series) ──> D4184 MOSFET ──> GND
+                                                         ^ gate
+                                                         |
+                                                   GPIO 18 (PWM0)
 
 GPIO 25 ──> Camera 2 External Trigger
 
