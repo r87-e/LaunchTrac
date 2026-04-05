@@ -1,0 +1,36 @@
+{
+  "frame_count": 4,
+  "frames": [
+    {
+      "ball_cx": 400.0,
+      "ball_cy": 750.0,
+      "ball_radius": 85.0,
+      "index": 0,
+      "time_offset_us": 0
+    },
+    {
+      "ball_cx": 410.0,
+      "ball_cy": 500.0,
+      "ball_radius": 80.0,
+      "index": 1,
+      "time_offset_us": 1000
+    },
+    {
+      "ball_cx": 425.0,
+      "ball_cy": 200.0,
+      "ball_radius": 70.0,
+      "index": 2,
+      "time_offset_us": 2500
+    },
+    {
+      "ball_cx": 435.0,
+      "ball_cy": -50.0,
+      "ball_radius": 60.0,
+      "index": 3,
+      "time_offset_us": 4500
+    }
+  ],
+  "height": 1088,
+  "name": "sky_ball",
+  "width": 1456
+}

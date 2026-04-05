@@ -1,0 +1,36 @@
+{
+  "frame_count": 4,
+  "frames": [
+    {
+      "ball_cx": 400.0,
+      "ball_cy": 850.0,
+      "ball_radius": 90.0,
+      "index": 0,
+      "time_offset_us": 0
+    },
+    {
+      "ball_cx": 480.0,
+      "ball_cy": 845.0,
+      "ball_radius": 90.0,
+      "index": 1,
+      "time_offset_us": 2000
+    },
+    {
+      "ball_cx": 580.0,
+      "ball_cy": 840.0,
+      "ball_radius": 90.0,
+      "index": 2,
+      "time_offset_us": 5000
+    },
+    {
+      "ball_cx": 700.0,
+      "ball_cy": 835.0,
+      "ball_radius": 90.0,
+      "index": 3,
+      "time_offset_us": 9000
+    }
+  ],
+  "height": 1088,
+  "name": "putter_shot",
+  "width": 1456
+}

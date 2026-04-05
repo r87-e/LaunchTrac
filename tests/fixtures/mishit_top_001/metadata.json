@@ -1,0 +1,29 @@
+{
+  "frame_count": 3,
+  "frames": [
+    {
+      "ball_cx": 400.0,
+      "ball_cy": 1050.0,
+      "ball_radius": 85.0,
+      "index": 0,
+      "time_offset_us": 0
+    },
+    {
+      "ball_cx": 550.0,
+      "ball_cy": 1040.0,
+      "ball_radius": 85.0,
+      "index": 1,
+      "time_offset_us": 1200
+    },
+    {
+      "ball_cx": 750.0,
+      "ball_cy": 1030.0,
+      "ball_radius": 85.0,
+      "index": 2,
+      "time_offset_us": 3000
+    }
+  ],
+  "height": 1088,
+  "name": "mishit_top",
+  "width": 1456
+}
