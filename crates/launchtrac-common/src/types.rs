@@ -2,9 +2,10 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Golf club classification
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum ClubType {
+    #[default]
     Driver,
     Wood3,
     Wood5,
@@ -47,25 +48,14 @@ impl ClubType {
     }
 }
 
-impl Default for ClubType {
-    fn default() -> Self {
-        Self::Driver
-    }
-}
-
 /// Player handedness
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Handedness {
     #[serde(rename = "RH")]
+    #[default]
     Right,
     #[serde(rename = "LH")]
     Left,
-}
-
-impl Default for Handedness {
-    fn default() -> Self {
-        Self::Right
-    }
 }
 
 /// Unique device identifier for a LaunchTrac unit
@@ -85,15 +75,10 @@ impl Default for DeviceId {
 }
 
 /// Supported measurement units
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Units {
+    #[default]
     Imperial, // mph, yards
-    Metric,   // m/s, meters
-}
-
-impl Default for Units {
-    fn default() -> Self {
-        Self::Imperial
-    }
+    Metric, // m/s, meters
 }

@@ -9,8 +9,8 @@ use crate::{CameraCapture, ImageFrame};
 ///   - Pi Camera GS (1456x1088)
 pub struct LibCamera {
     camera_index: u32,
-    width: u32,
-    height: u32,
+    _width: u32,
+    _height: u32,
 }
 
 impl LibCamera {
@@ -18,8 +18,8 @@ impl LibCamera {
         // Default to IMX296 resolution
         Ok(Self {
             camera_index,
-            width: 1456,
-            height: 1088,
+            _width: 1456,
+            _height: 1088,
         })
     }
 }

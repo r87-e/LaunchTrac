@@ -64,7 +64,7 @@ async fn check_update(
         .releases
         .iter()
         .filter(|r| r.channel == channel)
-        .last();
+        .next_back();
 
     match latest {
         Some(release) => Json(serde_json::json!({

@@ -1,5 +1,4 @@
 use launchtrac_common::error::LaunchTracError;
-use launchtrac_common::shot::ShotData;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpListener;
 

@@ -51,6 +51,7 @@ pub struct ShotData {
 
 impl ShotData {
     /// Create a new shot from raw measurements
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         shot_number: u32,
         speed_mph: f64,

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 
@@ -8,8 +8,6 @@ use launchtrac_common::shot::{Heartbeat, ShotData};
 
 const DEFAULT_PORT: u16 = 2483;
 const INTER_MESSAGE_DELAY_MS: u64 = 50;
-const BUFFER_SIZE: usize = 2000;
-
 // E6 parameter range limits (values are clamped to these)
 const BACKSPIN_MIN: i32 = -999;
 const BACKSPIN_MAX: i32 = 19999;

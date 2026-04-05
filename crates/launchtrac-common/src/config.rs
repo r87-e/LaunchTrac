@@ -9,7 +9,7 @@ use crate::error::LaunchTracError;
 ///   1. /etc/launchtrac/defaults.toml (shipped with binary)
 ///   2. ~/.launchtrac/config.toml (user overrides)
 ///   3. ~/.launchtrac/calibration.toml (auto-generated)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub hardware: HardwareConfig,
@@ -130,17 +130,6 @@ impl Default for PreferencesConfig {
             log_level: "info".to_string(),
             save_debug_images: false,
             handedness: "right".to_string(),
-        }
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            hardware: HardwareConfig::default(),
-            cameras: CameraConfig::default(),
-            network: NetworkConfig::default(),
-            preferences: PreferencesConfig::default(),
         }
     }
 }

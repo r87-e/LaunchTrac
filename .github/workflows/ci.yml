@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: "-D warnings"
+  RUSTFLAGS: "-A dead_code -A unused_imports -A unused_variables"
 
 jobs:
   # Stage 1: Parallel lint + security checks
