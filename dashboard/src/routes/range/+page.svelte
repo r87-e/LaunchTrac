@@ -5,6 +5,7 @@
 	import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 	import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 	import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+	import { themes, type RangeTheme } from '$lib/range';
 	import type { ShotData } from '$lib/types';
 
 	let container: HTMLDivElement;
@@ -38,6 +39,8 @@
 	let cameraMode = $state<CamMode>('behind');
 	let camTarget = new THREE.Vector3(0, 3, 40);
 	let isFullscreen = $state(false);
+	let currentTheme = $state<RangeTheme>(themes[0]);
+	let themePickerOpen = $state(false);
 
 	const presets = [
 		{ name: 'Driver Bomb', club: 'Driver', speed: 165, vla: 11, hla: 0, back: 2500, side: 0 },
@@ -98,11 +101,15 @@
 		return new THREE.CanvasTexture(c);
 	}
 
-	function createScene() {
-		scene = new THREE.Scene();
-		scene.background = new THREE.Color(0x000000);
-		scene.fog = new THREE.FogExp2(0x000000, 0.0015);
+	function initScene(theme: RangeTheme) {
+		// Clean up existing scene
+		if (renderer && container.contains(renderer.domElement)) {
+			container.removeChild(renderer.domElement);
+		}
+		if (composer) composer.dispose();
+		if (renderer) renderer.dispose();
 
+		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 2000);
 		camera.position.set(3, 3, -7);
 
@@ -117,125 +124,30 @@
 		composer.addPass(new RenderPass(scene, camera));
 		composer.addPass(new UnrealBloomPass(
 			new THREE.Vector2(container.clientWidth, container.clientHeight),
-			0.6, 0.8, 0.35
+			theme.bloomStrength, theme.bloomRadius, theme.bloomThreshold
 		));
 
 		circTex = makeCircleTexture();
 
-		// === GROUND — dark surface with subtle gradient ===
-		const gndGeo = new THREE.PlaneGeometry(800, 800, 80, 80);
-		const gndPos = gndGeo.attributes.position;
-		const gndCol = new Float32Array(gndPos.count * 3);
-		for (let i = 0; i < gndPos.count; i++) {
-			const x = gndPos.getX(i), z = gndPos.getZ(i);
-			const dist = Math.sqrt(x*x + z*z);
-			const fade = Math.max(0, 1 - dist / 400);
-			const f = fade * fade;
-			// Very dark grey-blue — just enough to see
-			gndCol[i*3] = 0.018 * f;
-			gndCol[i*3+1] = 0.020 * f;
-			gndCol[i*3+2] = 0.025 * f;
-		}
-		gndGeo.setAttribute('color', new THREE.BufferAttribute(gndCol, 3));
-		const gnd = new THREE.Mesh(gndGeo, new THREE.MeshBasicMaterial({ vertexColors: true }));
-		gnd.rotation.x = -Math.PI / 2;
-		gnd.position.y = -0.02;
-		scene.add(gnd);
+		// Let the theme build the scene
+		const result = theme.setup(scene, camera);
+		distanceLabels = result.distanceLabels;
+		landingDots = result.landingDots;
 
-		// === GRID — clean white/cyan lines ===
-		const gridGroup = new THREE.Group();
-		const gridSize = 350;
-		const gridStep = 10;
-		for (let i = -gridSize; i <= gridSize; i += gridStep) {
-			const dist = Math.abs(i);
-			const t = 1 - dist / gridSize;
-			const op = t * t * 0.08;
-			if (op < 0.005) continue;
-			const col = new THREE.Color().setHSL(0.55, 0.1, 0.4); // desaturated cyan-white
-			const m = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: op });
-			gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-				new THREE.Vector3(i, 0, -gridSize), new THREE.Vector3(i, 0, gridSize)
-			]), m));
-			gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-				new THREE.Vector3(-gridSize, 0, i), new THREE.Vector3(gridSize, 0, i)
-			]), m));
-		}
-		scene.add(gridGroup);
+		// Reset flight state
+		ball = null; trail = null; trailParticles = null;
+		impactRipple = null; flightActive = false; buildUp = false;
+		showStats = false; shotStats = null;
+	}
 
-		// Center line — slightly brighter, runs forward
-		const centerLine = new THREE.Line(
-			new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.01, 0), new THREE.Vector3(0, 0.01, 350)]),
-			new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.06 })
-		);
-		scene.add(centerLine);
-
-		// === TEE MARKER — minimal dot ===
-		const teeDot = new THREE.Mesh(
-			new THREE.CircleGeometry(0.3, 32),
-			new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 })
-		);
-		teeDot.rotation.x = -Math.PI / 2;
-		teeDot.position.y = 0.01;
-		scene.add(teeDot);
-
-		// === DISTANCE LABELS — floating numbers, no rings ===
-		const yd = 0.9144;
-		[50, 100, 150, 200, 250].forEach(yards => {
-			const c = document.createElement('canvas');
-			c.width = 128; c.height = 48;
-			const ctx = c.getContext('2d')!;
-			ctx.fillStyle = 'rgba(255,255,255,0.5)';
-			ctx.font = '300 28px -apple-system, Helvetica, sans-serif';
-			ctx.textAlign = 'center';
-			ctx.fillText(`${yards}`, 64, 32);
-			const tex = new THREE.CanvasTexture(c);
-			const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.5 }));
-			sp.position.set(0, 2, yards * yd);
-			sp.scale.set(10, 3.75, 1);
-			scene.add(sp);
-			distanceLabels.push({ sprite: sp, yards });
-
-			// Subtle ground tick at each yardage
-			const tick = new THREE.Line(
-				new THREE.BufferGeometry().setFromPoints([
-					new THREE.Vector3(-6, 0.01, yards * yd),
-					new THREE.Vector3(6, 0.01, yards * yd)
-				]),
-				new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.04 })
-			);
-			scene.add(tick);
-		});
-
-		// === STARS — sparse, subtle ===
-		const starCount = 1500;
-		const starGeo = new THREE.BufferGeometry();
-		const starPos = new Float32Array(starCount * 3);
-		for (let i = 0; i < starCount; i++) {
-			const th = Math.random() * Math.PI * 2;
-			const ph = Math.random() * Math.PI * 0.35;
-			const r = 500 + Math.random() * 200;
-			starPos[i*3] = r * Math.sin(ph) * Math.cos(th);
-			starPos[i*3+1] = r * Math.cos(ph) + 30;
-			starPos[i*3+2] = r * Math.sin(ph) * Math.sin(th);
-		}
-		starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-		scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
-			color: 0xffffff, size: 0.4, transparent: true, opacity: 0.4, depthWrite: false
-		})));
-
-		// === LIGHTING — minimal, clean ===
-		scene.add(new THREE.AmbientLight(0x111115, 2));
-
-		// Subtle top-down light for ground visibility
-		const topLight = new THREE.DirectionalLight(0xffffff, 0.15);
-		topLight.position.set(0, 100, 100);
-		scene.add(topLight);
-
-		landingDots = new THREE.Group();
-		scene.add(landingDots);
+	function switchTheme(theme: RangeTheme) {
+		currentTheme = theme;
+		themePickerOpen = false;
+		initScene(theme);
 	}
 
 	function launchBall(shot: ShotData) {
+		const t = currentTheme;
 		shotStats = shot; showStats = false;
 		if (ball) scene.remove(ball);
 		if (trail) scene.remove(trail);
@@ -245,67 +157,56 @@
 		buildUp = true; buildUpTime = 0; flightActive = false;
 		flightPath = computeFlight(shot); flightIndex = 0;
 
-		// Trail particle system
+		// Trail particles
 		trailPositions = new Float32Array(TRAIL_MAX * 3);
 		trailIdx = 0;
 		const tGeo = new THREE.BufferGeometry();
 		tGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
 		trailParticles = new THREE.Points(tGeo, new THREE.PointsMaterial({
-			color: 0xffffff, size: 0.25, transparent: true, opacity: 0.3,
+			color: t.trailColor, size: 0.25, transparent: true, opacity: 0.3,
 			map: circTex, blending: THREE.AdditiveBlending, depthWrite: false
 		}));
 		scene.add(trailParticles);
 
-		// Ball — pure white, glowing
+		// Ball
 		ball = new THREE.Mesh(
 			new THREE.SphereGeometry(0.35, 32, 32),
-			new THREE.MeshBasicMaterial({ color: 0xffffff })
+			new THREE.MeshBasicMaterial({ color: t.ballColor })
 		);
 		ball.position.set(0, 0.5, 0);
-
-		// Soft glow
-		const glow = new THREE.Mesh(
+		ball.add(new THREE.Mesh(
 			new THREE.SphereGeometry(0.5, 16, 16),
-			new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false })
-		);
-		ball.add(glow);
-
-		// Subtle light
-		ball.add(new THREE.PointLight(0xffffff, 0.8, 10));
-
+			new THREE.MeshBasicMaterial({ color: t.glowColor, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false })
+		));
+		ball.add(new THREE.PointLight(t.glowColor, 0.8, 10));
 		scene.add(ball);
 	}
 
 	function startFlight() {
 		buildUp = false; flightActive = true;
-
-		// Thin trail line
 		trail = new THREE.Line(
 			new THREE.BufferGeometry(),
-			new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
+			new THREE.LineBasicMaterial({ color: currentTheme.trailColor, transparent: true, opacity: 0.15 })
 		);
 		scene.add(trail);
 	}
 
 	function createImpact(pos: THREE.Vector3) {
-		// Clean ripple
 		impactRipple = new THREE.Mesh(
 			new THREE.RingGeometry(0.1, 0.3, 48),
-			new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false })
+			new THREE.MeshBasicMaterial({ color: currentTheme.impactColor, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false })
 		);
 		impactRipple.rotation.x = -Math.PI / 2;
 		impactRipple.position.set(pos.x, 0.05, pos.z);
 		scene.add(impactRipple);
 
-		// Landing dot
 		const dot = new THREE.Mesh(
 			new THREE.CircleGeometry(0.4, 24),
-			new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false })
+			new THREE.MeshBasicMaterial({ color: currentTheme.impactColor, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false })
 		);
 		dot.rotation.x = -Math.PI / 2;
 		dot.position.set(pos.x, 0.02, pos.z);
 		landingDots.add(dot);
-
 		showStats = true;
 	}
 
@@ -313,14 +214,12 @@
 		animationId = requestAnimationFrame(animate);
 		const dt = clock.getDelta();
 
-		// Build-up
 		if (buildUp) {
 			buildUpTime += dt;
 			if (ball) ball.scale.setScalar(0.9 + Math.sin(buildUpTime * 12) * 0.08);
 			if (buildUpTime > 0.25) startFlight();
 		}
 
-		// Flight
 		if (flightActive && ball && flightPath.length > 0) {
 			const spd = Math.max(2, Math.floor(flightPath.length / 140));
 			flightIndex = Math.min(flightIndex + spd, flightPath.length - 1);
@@ -328,41 +227,31 @@
 			ball.position.copy(p);
 			ball.scale.setScalar(1);
 
-			// Trail line
 			if (trail) {
 				const g = new THREE.BufferGeometry().setFromPoints(flightPath.slice(0, flightIndex + 1));
-				trail.geometry.dispose();
-				trail.geometry = g;
+				trail.geometry.dispose(); trail.geometry = g;
 			}
-
-			// Trail particles
 			if (trailParticles && trailPositions) {
 				const idx = (trailIdx % TRAIL_MAX) * 3;
-				trailPositions[idx] = p.x + (Math.random()-0.5)*0.15;
-				trailPositions[idx+1] = p.y + (Math.random()-0.5)*0.15;
-				trailPositions[idx+2] = p.z + (Math.random()-0.5)*0.15;
+				trailPositions[idx] = p.x+(Math.random()-0.5)*0.15;
+				trailPositions[idx+1] = p.y+(Math.random()-0.5)*0.15;
+				trailPositions[idx+2] = p.z+(Math.random()-0.5)*0.15;
 				trailIdx++;
 				trailParticles.geometry.attributes.position.needsUpdate = true;
 			}
 
-			// Highlight distance labels as ball passes
-			const ballDist = Math.sqrt(p.x*p.x + p.z*p.z);
+			const bd = Math.sqrt(p.x*p.x + p.z*p.z);
 			distanceLabels.forEach(d => {
-				const labelDist = d.yards * 0.9144;
-				const diff = Math.abs(ballDist - labelDist);
-				(d.sprite.material as THREE.SpriteMaterial).opacity = diff < 10 ? 1.0 : 0.5;
+				const diff = Math.abs(bd - d.yards * 0.9144);
+				(d.sprite.material as THREE.SpriteMaterial).opacity = diff < 10 ? 0.9 : 0.4;
 			});
 
-			if (flightIndex >= flightPath.length - 1) {
-				flightActive = false;
-				createImpact(p);
-			}
+			if (flightIndex >= flightPath.length - 1) { flightActive = false; createImpact(p); }
 		}
 
-		// Ripple expand
 		if (impactRipple) {
 			const s = impactRipple.scale.x + dt * 8;
-			impactRipple.scale.set(s, s, s);
+			impactRipple.scale.set(s,s,s);
 			const m = impactRipple.material as THREE.MeshBasicMaterial;
 			m.opacity = Math.max(0, m.opacity - dt * 0.25);
 			if (m.opacity <= 0) { scene.remove(impactRipple); impactRipple = null; }
@@ -372,64 +261,47 @@
 		if (ball && (flightActive || buildUp)) {
 			const bp = ball.position;
 			if (cameraMode === 'behind') {
-				camera.position.lerp(new THREE.Vector3(3, 3, -7), 0.04);
-				camTarget.lerp(new THREE.Vector3(0, Math.max(bp.y * 0.3, 1.5), flightActive ? Math.max(bp.z, 25) : 40), 0.05);
+				camera.position.lerp(new THREE.Vector3(3,3,-7), 0.04);
+				camTarget.lerp(new THREE.Vector3(0, Math.max(bp.y*0.3,1.5), flightActive?Math.max(bp.z,25):40), 0.05);
 			} else if (cameraMode === 'tracking') {
-				camera.position.lerp(new THREE.Vector3(-20, 5 + bp.y * 0.15, bp.z * 0.4), 0.03);
-				camTarget.lerp(bp.clone().add(new THREE.Vector3(0, 0, 8)), 0.05);
+				camera.position.lerp(new THREE.Vector3(-20, 5+bp.y*0.15, bp.z*0.4), 0.03);
+				camTarget.lerp(bp.clone().add(new THREE.Vector3(0,0,8)), 0.05);
 			} else {
-				const la = flightIndex + 25 < flightPath.length ? flightPath[flightIndex + 25] : flightPath[flightPath.length - 1];
-				const dir = new THREE.Vector3().subVectors(la, bp).normalize();
-				camera.position.lerp(new THREE.Vector3(bp.x - dir.x*5, bp.y + 1.5, bp.z - dir.z*5), 0.05);
+				const la = flightIndex+25<flightPath.length ? flightPath[flightIndex+25] : flightPath[flightPath.length-1];
+				const dir = new THREE.Vector3().subVectors(la,bp).normalize();
+				camera.position.lerp(new THREE.Vector3(bp.x-dir.x*5, bp.y+1.5, bp.z-dir.z*5), 0.05);
 				camTarget.lerp(la, 0.05);
 			}
 		} else {
-			if (cameraMode === 'behind') {
-				camera.position.lerp(new THREE.Vector3(3, 3, -7), 0.015);
-				camTarget.lerp(new THREE.Vector3(0, 3, 60), 0.015);
-			} else if (cameraMode === 'tracking') {
-				camera.position.lerp(new THREE.Vector3(-20, 5, 15), 0.015);
-				camTarget.lerp(new THREE.Vector3(0, 2, 50), 0.015);
-			} else {
-				camera.position.lerp(new THREE.Vector3(4, 4, -8), 0.015);
-				camTarget.lerp(new THREE.Vector3(0, 2, 40), 0.015);
-			}
+			const idle = cameraMode==='behind' ? {p:new THREE.Vector3(3,3,-7),t:new THREE.Vector3(0,3,60)} :
+				cameraMode==='tracking' ? {p:new THREE.Vector3(-20,5,15),t:new THREE.Vector3(0,2,50)} :
+				{p:new THREE.Vector3(4,4,-8),t:new THREE.Vector3(0,2,40)};
+			camera.position.lerp(idle.p, 0.015);
+			camTarget.lerp(idle.t, 0.015);
 		}
 		camera.lookAt(camTarget);
 		composer.render();
 	}
 
-	function buildShot(club: string, speed: number, vla: number, hla: number, back: number, side: number): ShotData {
-		return {
-			id: crypto.randomUUID(), shot_number: Math.floor(Math.random()*100),
-			speed_mph: speed, vla_deg: vla, hla_deg: hla,
-			backspin_rpm: back, sidespin_rpm: side,
-			spin_axis_deg: Math.atan2(side, back) * (180/Math.PI),
-			total_spin_rpm: Math.sqrt(back**2 + side**2),
-			club, confidence: 0.95, processing_time_ms: 200, timestamp: new Date().toISOString()
-		};
+	function buildShot(club:string,speed:number,vla:number,hla:number,back:number,side:number): ShotData {
+		return { id:crypto.randomUUID(), shot_number:Math.floor(Math.random()*100), speed_mph:speed, vla_deg:vla, hla_deg:hla, backspin_rpm:back, sidespin_rpm:side, spin_axis_deg:Math.atan2(side,back)*(180/Math.PI), total_spin_rpm:Math.sqrt(back**2+side**2), club, confidence:0.95, processing_time_ms:200, timestamp:new Date().toISOString() };
 	}
-	function firePreset(p: typeof presets[0]) {
-		launchBall(buildShot(p.club, p.speed+(Math.random()-0.5)*6, p.vla+(Math.random()-0.5)*2, p.hla+(Math.random()-0.5)*1, p.back+(Math.random()-0.5)*400, p.side+(Math.random()-0.5)*200));
-	}
-	function fireCustom() { launchBall(buildShot('Custom', manualSpeed, manualVla, manualHla, manualBackspin, manualSidespin)); }
+	function firePreset(p:typeof presets[0]) { launchBall(buildShot(p.club,p.speed+(Math.random()-0.5)*6,p.vla+(Math.random()-0.5)*2,p.hla+(Math.random()-0.5)*1,p.back+(Math.random()-0.5)*400,p.side+(Math.random()-0.5)*200)); }
+	function fireCustom() { launchBall(buildShot('Custom',manualSpeed,manualVla,manualHla,manualBackspin,manualSidespin)); }
 	function fireRandom() { firePreset(presets[Math.floor(Math.random()*presets.length)]); }
 
 	function handleResize() {
-		if (!container || !renderer || !camera) return;
-		camera.aspect = container.clientWidth / container.clientHeight;
+		if (!container||!renderer||!camera) return;
+		camera.aspect = container.clientWidth/container.clientHeight;
 		camera.updateProjectionMatrix();
-		renderer.setSize(container.clientWidth, container.clientHeight);
-		composer.setSize(container.clientWidth, container.clientHeight);
+		renderer.setSize(container.clientWidth,container.clientHeight);
+		composer.setSize(container.clientWidth,container.clientHeight);
 	}
-	function handleFullscreenChange() {
-		isFullscreen = !!document.fullscreenElement;
-		setTimeout(handleResize, 100);
-	}
+	function handleFullscreenChange() { isFullscreen=!!document.fullscreenElement; setTimeout(handleResize,100); }
 
-	let unsubscribe: (() => void) | undefined;
+	let unsubscribe: (()=>void)|undefined;
 	onMount(() => {
-		createScene(); animate();
+		initScene(currentTheme); animate();
 		window.addEventListener('resize', handleResize);
 		document.addEventListener('fullscreenchange', handleFullscreenChange);
 		unsubscribe = lastShot.subscribe(shot => { if (shot) launchBall(shot); });
@@ -462,6 +334,31 @@
 				else{container.parentElement?.requestFullscreen();isFullscreen=true}
 			}}>{isFullscreen?'EXIT':'FULLSCREEN'}</button>
 		</div>
+	</div>
+
+	<!-- Theme picker -->
+	<div class="theme-picker">
+		<button class="theme-toggle" on:click={()=>themePickerOpen=!themePickerOpen}>
+			<span class="theme-dot" style="background:{currentTheme.name==='Midnight'?'#fff':'#00ffcc'}"></span>
+			{currentTheme.name}
+		</button>
+		{#if themePickerOpen}
+			<div class="theme-list">
+				{#each themes as theme}
+					<button
+						class="theme-option"
+						class:active={theme.name === currentTheme.name}
+						on:click={()=>switchTheme(theme)}
+					>
+						<span class="theme-dot" style="background:{theme.name==='Midnight'?'#fff':'#00ffcc'}"></span>
+						<div>
+							<div class="theme-name">{theme.name}</div>
+							<div class="theme-desc">{theme.description}</div>
+						</div>
+					</button>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	{#if showStats && shotStats}
@@ -522,6 +419,18 @@
 	.cam-btn:hover { color:rgba(255,255,255,0.5); border-color:rgba(255,255,255,0.12); }
 	.cam-btn.active { border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.7); }
 
+	.theme-picker { position:absolute; top:20px; left:50%; transform:translateX(-50%); z-index:25; }
+	.theme-toggle { padding:6px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:20px; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:500; letter-spacing:0.1em; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; }
+	.theme-toggle:hover { color:rgba(255,255,255,0.6); border-color:rgba(255,255,255,0.12); }
+	.theme-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+	.theme-list { position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden; min-width:200px; backdrop-filter:blur(20px); }
+	.theme-option { display:flex; align-items:center; gap:10px; padding:12px 16px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; width:100%; text-align:left; transition:background 0.15s; }
+	.theme-option:last-child { border-bottom:none; }
+	.theme-option:hover { background:rgba(255,255,255,0.04); }
+	.theme-option.active { background:rgba(255,255,255,0.06); }
+	.theme-name { font-size:0.75rem; color:rgba(255,255,255,0.7); font-weight:500; }
+	.theme-desc { font-size:0.6rem; color:rgba(255,255,255,0.25); margin-top:2px; }
+
 	.stats-overlay { position:absolute; bottom:80px; right:28px; z-index:10; animation:fadeIn 0.6s ease; text-align:right; }
 	.stat-big { font-size:3.5rem; font-weight:200; color:rgba(255,255,255,0.9); line-height:1; font-variant-numeric:tabular-nums; }
 	.stat-unit { font-size:1rem; font-weight:300; color:rgba(255,255,255,0.3); margin-left:4px; }
@@ -542,7 +451,7 @@
 	.tab.active { color:rgba(255,255,255,0.6); border-bottom-color:rgba(255,255,255,0.2); }
 
 	.preset-list { display:flex; flex-direction:column; gap:2px; flex:1; overflow-y:auto; }
-	.preset { display:flex; justify-content:space-between; align-items:center; padding:10px 10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:all 0.15s; text-align:left; }
+	.preset { display:flex; justify-content:space-between; align-items:center; padding:10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:all 0.15s; text-align:left; }
 	.preset:hover { background:rgba(255,255,255,0.03); }
 	.preset:active { background:rgba(255,255,255,0.05); }
 	.preset-name { font-size:0.75rem; font-weight:400; color:rgba(255,255,255,0.6); }
