@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaunchTrac Architecture</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* Slide system */
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 40px;
+            position: relative;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .slide-number {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            color: #333;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .slide h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .slide h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .slide p.sub {
+            color: #888;
+            font-size: 1.1rem;
+            text-align: center;
+            max-width: 700px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        /* Title slide */
+        .title-slide h1 { font-size: 4rem; margin-bottom: 8px; }
+        .title-slide .tagline {
+            color: #4ade80;
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 48px;
+        }
+        .title-stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 20px;
+        }
+        .title-stat {
+            text-align: center;
+        }
+        .title-stat .num {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #4ade80;
+        }
+        .title-stat .label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* Diagram containers */
+        .diagram {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* HAL diagram */
+        .hal-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            max-width: 700px;
+        }
+        .hal-layer {
+            border-radius: 8px;
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hal-app { background: #1a1a3e; border: 1px solid #2d2d6b; }
+        .hal-trait { background: #1a2e1a; border: 1px solid #2d6b2d; }
+        .hal-impl { background: #2e1a1a; border: 1px solid #6b2d2d; }
+        .hal-layer .name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .hal-layer .detail {
+            color: #888;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+        .hal-arrow {
+            text-align: center;
+            color: #444;
+            font-size: 1.4rem;
+            padding: 4px 0;
+        }
+        .trait-box {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 24px;
+        }
+        .trait-card {
+            flex: 1;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .trait-card h3 {
+            font-size: 0.9rem;
+            color: #4ade80;
+            margin-bottom: 8px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .trait-card .methods {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.8;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .impl-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 12px;
+        }
+        .impl-tag {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .impl-real { background: #1a2e1a; border: 1px solid #2d6b2d; color: #4ade80; }
+        .impl-mock { background: #2e2e1a; border: 1px solid #6b6b2d; color: #fbbf24; }
+        .impl-future { background: #1a1a2e; border: 1px solid #2d2d6b; color: #60a5fa; opacity: 0.6; }
+
+        /* Actor pipeline */
+        .pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            width: 100%;
+            max-width: 750px;
+        }
+        .actor-row {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .actor {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 16px 20px;
+            min-width: 160px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .actor:hover {
+            border-color: #4ade80;
+            transform: scale(1.03);
+        }
+        .actor .actor-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .actor .actor-desc {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .actor-color-cam { border-left: 3px solid #f97316; }
+        .actor-color-motion { border-left: 3px solid #eab308; }
+        .actor-color-strobe { border-left: 3px solid #ef4444; }
+        .actor-color-vision { border-left: 3px solid #8b5cf6; }
+        .actor-color-router { border-left: 3px solid #22c55e; }
+        .actor-color-cloud { border-left: 3px solid #3b82f6; }
+        .actor-color-web { border-left: 3px solid #06b6d4; }
+        .arrow-down {
+            text-align: center;
+            color: #333;
+            font-size: 1.2rem;
+            padding: 6px 0;
+            margin-left: 70px;
+        }
+        .arrow-right {
+            color: #333;
+            font-size: 1.2rem;
+            padding: 0 10px;
+        }
+        .branch-row {
+            display: flex;
+            gap: 16px;
+            margin-left: 40px;
+        }
+
+        /* Message channel visualization */
+        .channel-demo {
+            width: 100%;
+            max-width: 700px;
+            margin-top: 32px;
+        }
+        .channel-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .channel-sender, .channel-receiver {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            min-width: 140px;
+            text-align: center;
+        }
+        .channel-pipe {
+            flex: 1;
+            height: 2px;
+            background: #222;
+            position: relative;
+            overflow: hidden;
+        }
+        .channel-msg {
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 18px;
+            height: 18px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: flow 2s ease-in-out infinite;
+        }
+        .channel-msg.msg2 { animation-delay: 0.7s; }
+        .channel-msg.msg3 { animation-delay: 1.4s; background: #60a5fa; }
+        @keyframes flow {
+            0% { left: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { left: calc(100% - 18px); opacity: 0; }
+        }
+        .channel-type {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #4ade80;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            white-space: nowrap;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 20px 24px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+            max-width: 700px;
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .code-block .kw { color: #c678dd; }
+        .code-block .fn { color: #61afef; }
+        .code-block .ty { color: #e5c07b; }
+        .code-block .str { color: #98c379; }
+        .code-block .cm { color: #5c6370; }
+        .code-block .lt { color: #d19a66; }
+
+        /* Comparison table */
+        .compare-table {
+            width: 100%;
+            max-width: 700px;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .compare-table th {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid #222;
+            color: #888;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .compare-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #151515;
+            font-size: 0.9rem;
+        }
+        .compare-table .old { color: #666; }
+        .compare-table .new { color: #4ade80; }
+
+        /* Crate map */
+        .crate-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 750px;
+            margin-top: 20px;
+        }
+        .crate-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+        .crate-card h4 {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #4ade80;
+            margin-bottom: 4px;
+        }
+        .crate-card p {
+            font-size: 0.75rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        .crate-edge { border-left: 3px solid #f97316; }
+        .crate-hal { border-left: 3px solid #ef4444; }
+        .crate-vision { border-left: 3px solid #8b5cf6; }
+        .crate-common { border-left: 3px solid #888; }
+        .crate-sim { border-left: 3px solid #eab308; }
+        .crate-cloud { border-left: 3px solid #3b82f6; }
+
+        /* Strobe timing diagram */
+        .timing-diagram {
+            width: 100%;
+            max-width: 700px;
+            margin-top: 24px;
+        }
+        .timing-diagram svg {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Nav dots */
+        .nav-dots {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-dot.active { background: #4ade80; transform: scale(1.3); }
+        .nav-dot:hover { background: #666; }
+    </style>
+</head>
+<body>
+
+<nav class="nav-dots" id="nav-dots"></nav>
+
+<!-- SLIDE 1: Title -->
+<div class="slide title-slide" id="slide-1">
+    <span class="slide-number">01</span>
+    <h1>LaunchTrac</h1>
+    <p class="tagline">Open-source golf launch monitor — built in Rust</p>
+    <div class="title-stats">
+        <div class="title-stat">
+            <div class="num">11</div>
+            <div class="label">Rust crates</div>
+        </div>
+        <div class="title-stat">
+            <div class="num">7</div>
+            <div class="label">Pipeline actors</div>
+        </div>
+        <div class="title-stat">
+            <div class="num">30</div>
+            <div class="label">Config params</div>
+        </div>
+        <div class="title-stat">
+            <div class="num">~$200</div>
+            <div class="label">Hardware cost</div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 2: How it works -->
+<div class="slide" id="slide-2">
+    <span class="slide-number">02</span>
+    <h2>How It Works</h2>
+    <p class="sub">Two global shutter cameras + IR LED strobes freeze a golf ball in flight. 20-microsecond light pulses capture 3-5 positions in a single exposure. From those positions, we calculate everything.</p>
+    <div class="timing-diagram">
+        <svg viewBox="0 0 700 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Time axis -->
+            <line x1="50" y1="220" x2="650" y2="220" stroke="#333" stroke-width="1"/>
+            <text x="650" y="240" fill="#666" font-size="11" font-family="system-ui">time</text>
+
+            <!-- Strobe pulses -->
+            <text x="20" y="30" fill="#888" font-size="11" font-family="system-ui">IR</text>
+            <text x="10" y="45" fill="#888" font-size="11" font-family="system-ui">Strobe</text>
+
+            <!-- Pulse 1 -->
+            <rect x="100" y="20" width="8" height="60" rx="2" fill="#4ade80" opacity="0.9"/>
+            <text x="96" y="100" fill="#4ade80" font-size="10" font-family="monospace">20us</text>
+
+            <!-- Pulse 2 -->
+            <rect x="220" y="20" width="8" height="60" rx="2" fill="#4ade80" opacity="0.9"/>
+
+            <!-- Pulse 3 -->
+            <rect x="380" y="20" width="8" height="60" rx="2" fill="#4ade80" opacity="0.9"/>
+
+            <!-- Pulse 4 -->
+            <rect x="520" y="20" width="8" height="60" rx="2" fill="#4ade80" opacity="0.9"/>
+
+            <!-- Delay annotations -->
+            <line x1="108" y1="90" x2="220" y2="90" stroke="#666" stroke-width="1" stroke-dasharray="4"/>
+            <text x="145" y="108" fill="#888" font-size="10" font-family="monospace">700us</text>
+
+            <line x1="228" y1="90" x2="380" y2="90" stroke="#666" stroke-width="1" stroke-dasharray="4"/>
+            <text x="285" y="108" fill="#888" font-size="10" font-family="monospace">1800us</text>
+
+            <line x1="388" y1="90" x2="520" y2="90" stroke="#666" stroke-width="1" stroke-dasharray="4"/>
+            <text x="435" y="108" fill="#888" font-size="10" font-family="monospace">1800us</text>
+
+            <!-- Ball positions -->
+            <text x="20" y="160" fill="#888" font-size="11" font-family="system-ui">Ball</text>
+
+            <circle cx="104" cy="155" r="18" fill="none" stroke="#f97316" stroke-width="2"/>
+            <circle cx="104" cy="155" r="4" fill="#f97316"/>
+
+            <circle cx="224" cy="148" r="17" fill="none" stroke="#f97316" stroke-width="2"/>
+            <circle cx="224" cy="148" r="4" fill="#f97316"/>
+
+            <circle cx="384" cy="138" r="15" fill="none" stroke="#f97316" stroke-width="2"/>
+            <circle cx="384" cy="138" r="4" fill="#f97316"/>
+
+            <circle cx="524" cy="130" r="14" fill="none" stroke="#f97316" stroke-width="2"/>
+            <circle cx="524" cy="130" r="4" fill="#f97316"/>
+
+            <!-- Trajectory line -->
+            <line x1="104" y1="155" x2="524" y2="130" stroke="#f97316" stroke-width="1" stroke-dasharray="6" opacity="0.4"/>
+
+            <!-- Camera exposure -->
+            <text x="20" y="200" fill="#888" font-size="11" font-family="system-ui">Cam</text>
+            <rect x="80" y="210" width="470" height="6" rx="3" fill="#3b82f6" opacity="0.3"/>
+            <text x="270" y="250" fill="#3b82f6" font-size="10" font-family="monospace" text-anchor="middle">single exposure (~10ms)</text>
+
+            <!-- Labels -->
+            <text x="100" y="270" fill="#666" font-size="10" font-family="system-ui">pos 1</text>
+            <text x="218" y="270" fill="#666" font-size="10" font-family="system-ui">pos 2</text>
+            <text x="378" y="270" fill="#666" font-size="10" font-family="system-ui">pos 3</text>
+            <text x="518" y="270" fill="#666" font-size="10" font-family="system-ui">pos 4</text>
+        </svg>
+    </div>
+</div>
+
+<!-- SLIDE 3: Actor Pipeline -->
+<div class="slide" id="slide-3">
+    <span class="slide-number">03</span>
+    <h2>Actor Pipeline</h2>
+    <p class="sub">Seven independent actors, zero shared mutable state. Each owns its data, receives typed messages, and passes results downstream.</p>
+
+    <div class="pipeline">
+        <div class="actor-row">
+            <div class="actor actor-color-cam" style="margin-left: 40px;">
+                <div class="actor-name">Camera1</div>
+                <div class="actor-desc">Continuous low-res capture</div>
+            </div>
+        </div>
+        <div class="arrow-down">|</div>
+        <div class="actor-row">
+            <div class="actor actor-color-motion" style="margin-left: 40px;">
+                <div class="actor-name">MotionDetector</div>
+                <div class="actor-desc">Frame differencing</div>
+            </div>
+        </div>
+        <div class="arrow-down">|</div>
+        <div class="actor-row">
+            <div class="actor actor-color-strobe" style="margin-left: 40px;">
+                <div class="actor-name">StrobeController</div>
+                <div class="actor-desc">Fire IR LEDs + trigger Camera2</div>
+            </div>
+        </div>
+        <div class="arrow-down">|</div>
+        <div class="actor-row">
+            <div class="actor actor-color-vision" style="margin-left: 40px;">
+                <div class="actor-name">ImageProcessor</div>
+                <div class="actor-desc">YOLO detection + spin ML</div>
+            </div>
+        </div>
+        <div class="arrow-down">|</div>
+        <div class="actor-row">
+            <div class="actor actor-color-router" style="margin-left: 40px;">
+                <div class="actor-name">ResultsRouter</div>
+                <div class="actor-desc">Fan-out to consumers</div>
+            </div>
+        </div>
+        <div class="arrow-down" style="margin-left: 70px;">|</div>
+        <div class="branch-row">
+            <div class="actor actor-color-cloud">
+                <div class="actor-name">CloudUploader</div>
+                <div class="actor-desc">Fly.io sync</div>
+            </div>
+            <div class="actor actor-color-web">
+                <div class="actor-name">WebServer</div>
+                <div class="actor-desc">Dashboard :8080</div>
+            </div>
+            <div class="actor" style="border-left: 3px solid #eab308;">
+                <div class="actor-name">SimProtocol</div>
+                <div class="actor-desc">GSPro / E6</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 4: Message Channels -->
+<div class="slide" id="slide-4">
+    <span class="slide-number">04</span>
+    <h2>Typed Message Channels</h2>
+    <p class="sub">Actors communicate through Tokio mpsc channels. Each channel carries a specific message type — the compiler guarantees you can't send the wrong data.</p>
+
+    <div class="channel-demo">
+        <div class="channel-line">
+            <div class="channel-sender">Camera1</div>
+            <div class="channel-pipe">
+                <span class="channel-type">ImageFrame</span>
+                <div class="channel-msg"></div>
+                <div class="channel-msg msg2"></div>
+            </div>
+            <div class="channel-receiver">MotionDetector</div>
+        </div>
+        <div class="channel-line">
+            <div class="channel-sender">MotionDetector</div>
+            <div class="channel-pipe">
+                <span class="channel-type">TriggerEvent</span>
+                <div class="channel-msg" style="background: #eab308;"></div>
+            </div>
+            <div class="channel-receiver">StrobeController</div>
+        </div>
+        <div class="channel-line">
+            <div class="channel-sender">ImageProcessor</div>
+            <div class="channel-pipe">
+                <span class="channel-type">ShotData</span>
+                <div class="channel-msg msg3"></div>
+            </div>
+            <div class="channel-receiver">ResultsRouter</div>
+        </div>
+        <div class="channel-line">
+            <div class="channel-sender">ResultsRouter</div>
+            <div class="channel-pipe">
+                <span class="channel-type">broadcast::Sender&lt;ShotData&gt;</span>
+                <div class="channel-msg" style="background: #ef4444;"></div>
+                <div class="channel-msg msg2" style="background: #ef4444;"></div>
+                <div class="channel-msg msg3" style="background: #ef4444;"></div>
+            </div>
+            <div class="channel-receiver">N subscribers</div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 5: HAL -->
+<div class="slide" id="slide-5">
+    <span class="slide-number">05</span>
+    <h2>Hardware Abstraction Layer</h2>
+    <p class="sub">Three traits define the hardware contract. Implement them for any platform — the rest of the codebase doesn't change.</p>
+
+    <div class="trait-box">
+        <div class="trait-card">
+            <h3>CameraCapture</h3>
+            <div class="methods">
+                start_preview()<br>
+                capture_still()<br>
+                capture_strobed()<br>
+                stop()
+            </div>
+        </div>
+        <div class="trait-card">
+            <h3>GpioController</h3>
+            <div class="methods">
+                set_pin()<br>
+                read_pin()
+            </div>
+        </div>
+        <div class="trait-card">
+            <h3>PwmStrobe</h3>
+            <div class="methods">
+                send_pulse_train()<br>
+                trigger_camera()
+            </div>
+        </div>
+    </div>
+
+    <div class="impl-row" style="margin-top: 24px;">
+        <div class="impl-tag impl-real">LibCamera (Pi)</div>
+        <div class="impl-tag impl-real">PiGpio</div>
+        <div class="impl-tag impl-real">PiPwm</div>
+    </div>
+    <div class="impl-row">
+        <div class="impl-tag impl-mock">MockHardware</div>
+        <div class="impl-tag impl-mock">MockHardware</div>
+        <div class="impl-tag impl-mock">MockHardware</div>
+    </div>
+    <div class="impl-row">
+        <div class="impl-tag impl-future">JetsonCamera?</div>
+        <div class="impl-tag impl-future">JetsonGpio?</div>
+        <div class="impl-tag impl-future">JetsonPwm?</div>
+    </div>
+    <div class="impl-row">
+        <div class="impl-tag impl-future">FlirBlackfly?</div>
+        <div class="impl-tag impl-future">BeagleBoneGpio?</div>
+        <div class="impl-tag impl-future">ArduinoStrobe?</div>
+    </div>
+</div>
+
+<!-- SLIDE 6: Code example -->
+<div class="slide" id="slide-6">
+    <span class="slide-number">06</span>
+    <h2>Trait in Action</h2>
+    <p class="sub">The vision pipeline doesn't know or care what camera it's using. Pass in a MockHardware for testing, a real LibCamera for production.</p>
+
+    <div class="code-block">
+<span class="cm">// The trait — defines what a camera can do</span>
+<span class="kw">pub trait</span> <span class="ty">CameraCapture</span>: <span class="ty">Send</span> + <span class="ty">Sync</span> {
+    <span class="kw">fn</span> <span class="fn">capture_strobed</span>(&<span class="kw">mut self</span>) -> <span class="ty">Result</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">ImageFrame</span>&gt;&gt;;
+}
+
+<span class="cm">// Production: real camera on Pi/Jetson</span>
+<span class="kw">let mut</span> camera = <span class="ty">LibCamera</span>::<span class="fn">new</span>(<span class="lt">0</span>)?;
+<span class="kw">let</span> frames = camera.<span class="fn">capture_strobed</span>()?;
+
+<span class="cm">// Testing: replay saved images, no hardware needed</span>
+<span class="kw">let mut</span> mock = <span class="ty">MockHardware</span>::<span class="fn">from_fixture</span>(<span class="str">"tests/fixtures/driver_shot_001"</span>)?;
+<span class="kw">let</span> frames = mock.<span class="fn">capture_strobed</span>()?;
+
+<span class="cm">// Same pipeline processes both — it only sees the trait</span>
+<span class="kw">fn</span> <span class="fn">process_shot</span>(cam: &<span class="kw">mut dyn</span> <span class="ty">CameraCapture</span>) -> <span class="ty">ShotData</span> {
+    <span class="kw">let</span> frames = cam.<span class="fn">capture_strobed</span>().unwrap();
+    <span class="kw">let</span> pipeline = <span class="ty">VisionPipeline</span>::<span class="fn">new</span>();
+    pipeline.<span class="fn">process</span>(&frames)
+}
+    </div>
+</div>
+
+<!-- SLIDE 7: Crate Map -->
+<div class="slide" id="slide-7">
+    <span class="slide-number">07</span>
+    <h2>Crate Map</h2>
+    <p class="sub">11 crates in a Cargo workspace. Each has a single responsibility.</p>
+
+    <div class="crate-grid">
+        <div class="crate-card crate-edge">
+            <h4>launchtrac-edge</h4>
+            <p>Main binary. Actor pipeline, CLI, embedded web server</p>
+        </div>
+        <div class="crate-card crate-hal">
+            <h4>launchtrac-hal</h4>
+            <p>Hardware abstraction. GPIO, PWM, cameras + MockHardware</p>
+        </div>
+        <div class="crate-card crate-vision">
+            <h4>launchtrac-vision</h4>
+            <p>Ball detection (YOLO/Hough), trajectory, spin estimation</p>
+        </div>
+        <div class="crate-card crate-common">
+            <h4>launchtrac-common</h4>
+            <p>Shared types, config (30 params), error types</p>
+        </div>
+        <div class="crate-card crate-sim">
+            <h4>launchtrac-sim-proto</h4>
+            <p>GSPro (port 921) and E6/TruGolf (port 2483) protocols</p>
+        </div>
+        <div class="crate-card crate-cloud">
+            <h4>launchtrac-api</h4>
+            <p>Cloud API gateway with WebSocket streaming</p>
+        </div>
+        <div class="crate-card crate-cloud">
+            <h4>launchtrac-shot</h4>
+            <p>Shot storage and analytics service</p>
+        </div>
+        <div class="crate-card crate-cloud">
+            <h4>launchtrac-auth</h4>
+            <p>Device registration and authentication</p>
+        </div>
+        <div class="crate-card crate-cloud">
+            <h4>launchtrac-relay</h4>
+            <p>WebSocket bridge for remote simulator connections</p>
+        </div>
+        <div class="crate-card crate-cloud">
+            <h4>launchtrac-ota</h4>
+            <p>Over-the-air firmware updates</p>
+        </div>
+        <div class="crate-card crate-edge">
+            <h4>launchtrac-companion</h4>
+            <p>Desktop app — bridges cloud relay to local simulators</p>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 8: What it measures -->
+<div class="slide" id="slide-8">
+    <span class="slide-number">08</span>
+    <h2>What It Measures</h2>
+    <p class="sub">From 3-5 frozen ball positions captured in microseconds, the vision pipeline extracts:</p>
+
+    <div class="crate-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 550px;">
+        <div class="crate-card" style="border-left: 3px solid #4ade80;">
+            <h4 style="font-family: system-ui; font-size: 1rem;">Ball Speed</h4>
+            <p>Distance between positions / known time intervals. Pinhole camera model converts pixels to real-world distance.</p>
+        </div>
+        <div class="crate-card" style="border-left: 3px solid #f97316;">
+            <h4 style="font-family: system-ui; font-size: 1rem;">Launch Angle</h4>
+            <p>Vertical: trajectory slope in the camera plane. Horizontal: offset from center line using stereo cameras.</p>
+        </div>
+        <div class="crate-card" style="border-left: 3px solid #8b5cf6;">
+            <h4 style="font-family: system-ui; font-size: 1rem;">Backspin</h4>
+            <p>Gabor filter extracts dimple pattern orientation between frames. Rotation delta / time = RPM.</p>
+        </div>
+        <div class="crate-card" style="border-left: 3px solid #3b82f6;">
+            <h4 style="font-family: system-ui; font-size: 1rem;">Sidespin</h4>
+            <p>Same dimple tracking on the horizontal axis. Combined with backspin gives total spin and spin axis.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 9: Get started -->
+<div class="slide" id="slide-9">
+    <span class="slide-number">09</span>
+    <h2>Get Started</h2>
+    <p class="sub">No hardware needed. Clone, build, run the full pipeline on synthetic data.</p>
+
+    <div class="code-block">
+<span class="cm"># Clone and build</span>
+git clone https://github.com/r87-e/LaunchTrac.git
+cd LaunchTrac
+cargo build
+
+<span class="cm"># Run all tests</span>
+cargo test --workspace
+
+<span class="cm"># Generate synthetic ball images</span>
+cargo run -p launchtrac-edge --example generate_fixtures
+
+<span class="cm"># Process a fixture through the full pipeline</span>
+cargo run -p launchtrac-edge --example process_fixture -- tests/fixtures/driver_shot_001
+
+<span class="cm"># Start with web dashboard on :8080</span>
+cargo run -p launchtrac-edge -- --mock --port 8080
+    </div>
+
+    <div class="title-stats" style="margin-top: 40px;">
+        <div class="title-stat">
+            <div class="num" style="font-size: 1.4rem;">GPL-2.0</div>
+            <div class="label">License</div>
+        </div>
+        <div class="title-stat">
+            <div class="num" style="font-size: 1.4rem;">Rust 1.82+</div>
+            <div class="label">Minimum version</div>
+        </div>
+        <div class="title-stat">
+            <div class="num" style="font-size: 1.4rem;">Node 22+</div>
+            <div class="label">For dashboard</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navigation dots
+    const slides = document.querySelectorAll('.slide');
+    const navContainer = document.getElementById('nav-dots');
+
+    slides.forEach((slide, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'nav-dot';
+        dot.addEventListener('click', () => {
+            slide.scrollIntoView({ behavior: 'smooth' });
+        });
+        navContainer.appendChild(dot);
+    });
+
+    const dots = document.querySelectorAll('.nav-dot');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const index = Array.from(slides).indexOf(entry.target);
+                dots.forEach(d => d.classList.remove('active'));
+                if (dots[index]) dots[index].classList.add('active');
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
