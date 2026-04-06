@@ -11,7 +11,7 @@ fn main() {
 
     generate_driver_shot(&base.join("driver_shot_001"));
     generate_iron7_shot(&base.join("iron7_shot_001"));
-    
+
     // --- New Fixtures ---
     generate_wedge_shot(&base.join("wedge_shot_001"));
     generate_putter_shot(&base.join("putter_shot_001"));
@@ -34,10 +34,34 @@ fn generate_wedge_shot(dir: &Path) {
     println!("Generating wedge_shot_001...");
     fs::create_dir_all(dir).unwrap();
     let frames = vec![
-        FrameSpec { ball_cx: 400.0, ball_cy: 800.0, ball_radius: 88.0, brightness: 220, time_offset_us: 0 },
-        FrameSpec { ball_cx: 450.0, ball_cy: 550.0, ball_radius: 82.0, brightness: 200, time_offset_us: 1500 },
-        FrameSpec { ball_cx: 520.0, ball_cy: 300.0, ball_radius: 75.0, brightness: 180, time_offset_us: 3500 },
-        FrameSpec { ball_cx: 600.0, ball_cy: 100.0, ball_radius: 68.0, brightness: 160, time_offset_us: 6000 },
+        FrameSpec {
+            ball_cx: 400.0,
+            ball_cy: 800.0,
+            ball_radius: 88.0,
+            brightness: 220,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 450.0,
+            ball_cy: 550.0,
+            ball_radius: 82.0,
+            brightness: 200,
+            time_offset_us: 1500,
+        },
+        FrameSpec {
+            ball_cx: 520.0,
+            ball_cy: 300.0,
+            ball_radius: 75.0,
+            brightness: 180,
+            time_offset_us: 3500,
+        },
+        FrameSpec {
+            ball_cx: 600.0,
+            ball_cy: 100.0,
+            ball_radius: 68.0,
+            brightness: 160,
+            time_offset_us: 6000,
+        },
     ];
     write_fixture(dir, &frames, "wedge_shot");
 }
@@ -47,10 +71,34 @@ fn generate_putter_shot(dir: &Path) {
     println!("Generating putter_shot_001...");
     fs::create_dir_all(dir).unwrap();
     let frames = vec![
-        FrameSpec { ball_cx: 400.0, ball_cy: 850.0, ball_radius: 90.0, brightness: 210, time_offset_us: 0 },
-        FrameSpec { ball_cx: 480.0, ball_cy: 845.0, ball_radius: 90.0, brightness: 210, time_offset_us: 2000 },
-        FrameSpec { ball_cx: 580.0, ball_cy: 840.0, ball_radius: 90.0, brightness: 210, time_offset_us: 5000 },
-        FrameSpec { ball_cx: 700.0, ball_cy: 835.0, ball_radius: 90.0, brightness: 210, time_offset_us: 9000 },
+        FrameSpec {
+            ball_cx: 400.0,
+            ball_cy: 850.0,
+            ball_radius: 90.0,
+            brightness: 210,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 480.0,
+            ball_cy: 845.0,
+            ball_radius: 90.0,
+            brightness: 210,
+            time_offset_us: 2000,
+        },
+        FrameSpec {
+            ball_cx: 580.0,
+            ball_cy: 840.0,
+            ball_radius: 90.0,
+            brightness: 210,
+            time_offset_us: 5000,
+        },
+        FrameSpec {
+            ball_cx: 700.0,
+            ball_cy: 835.0,
+            ball_radius: 90.0,
+            brightness: 210,
+            time_offset_us: 9000,
+        },
     ];
     write_fixture(dir, &frames, "putter_shot");
 }
@@ -60,9 +108,27 @@ fn generate_mishit_top(dir: &Path) {
     println!("Generating mishit_top_001...");
     fs::create_dir_all(dir).unwrap();
     let frames = vec![
-        FrameSpec { ball_cx: 400.0, ball_cy: 1050.0, ball_radius: 85.0, brightness: 180, time_offset_us: 0 },
-        FrameSpec { ball_cx: 550.0, ball_cy: 1040.0, ball_radius: 85.0, brightness: 180, time_offset_us: 1200 },
-        FrameSpec { ball_cx: 750.0, ball_cy: 1030.0, ball_radius: 85.0, brightness: 180, time_offset_us: 3000 },
+        FrameSpec {
+            ball_cx: 400.0,
+            ball_cy: 1050.0,
+            ball_radius: 85.0,
+            brightness: 180,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 550.0,
+            ball_cy: 1040.0,
+            ball_radius: 85.0,
+            brightness: 180,
+            time_offset_us: 1200,
+        },
+        FrameSpec {
+            ball_cx: 750.0,
+            ball_cy: 1030.0,
+            ball_radius: 85.0,
+            brightness: 180,
+            time_offset_us: 3000,
+        },
     ];
     write_fixture(dir, &frames, "mishit_top");
 }
@@ -72,10 +138,34 @@ fn generate_sky_ball(dir: &Path) {
     println!("Generating sky_ball_001...");
     fs::create_dir_all(dir).unwrap();
     let frames = vec![
-        FrameSpec { ball_cx: 400.0, ball_cy: 750.0, ball_radius: 85.0, brightness: 210, time_offset_us: 0 },
-        FrameSpec { ball_cx: 410.0, ball_cy: 500.0, ball_radius: 80.0, brightness: 190, time_offset_us: 1000 },
-        FrameSpec { ball_cx: 425.0, ball_cy: 200.0, ball_radius: 70.0, brightness: 170, time_offset_us: 2500 },
-        FrameSpec { ball_cx: 435.0, ball_cy: -50.0, ball_radius: 60.0, brightness: 150, time_offset_us: 4500 },
+        FrameSpec {
+            ball_cx: 400.0,
+            ball_cy: 750.0,
+            ball_radius: 85.0,
+            brightness: 210,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 410.0,
+            ball_cy: 500.0,
+            ball_radius: 80.0,
+            brightness: 190,
+            time_offset_us: 1000,
+        },
+        FrameSpec {
+            ball_cx: 425.0,
+            ball_cy: 200.0,
+            ball_radius: 70.0,
+            brightness: 170,
+            time_offset_us: 2500,
+        },
+        FrameSpec {
+            ball_cx: 435.0,
+            ball_cy: -50.0,
+            ball_radius: 60.0,
+            brightness: 150,
+            time_offset_us: 4500,
+        },
     ];
     write_fixture(dir, &frames, "sky_ball");
 }
@@ -86,11 +176,41 @@ fn generate_driver_shot(dir: &Path) {
     println!("Generating driver_shot_001...");
     fs::create_dir_all(dir).unwrap();
     let frames = vec![
-        FrameSpec { ball_cx: 400.0, ball_cy: 700.0, ball_radius: 85.0, brightness: 210, time_offset_us: 0 },
-        FrameSpec { ball_cx: 520.0, ball_cy: 620.0, ball_radius: 82.0, brightness: 200, time_offset_us: 700 },
-        FrameSpec { ball_cx: 680.0, ball_cy: 520.0, ball_radius: 78.0, brightness: 195, time_offset_us: 2500 },
-        FrameSpec { ball_cx: 900.0, ball_cy: 400.0, ball_radius: 74.0, brightness: 185, time_offset_us: 5500 },
-        FrameSpec { ball_cx: 1100.0, ball_cy: 310.0, ball_radius: 70.0, brightness: 175, time_offset_us: 7700 },
+        FrameSpec {
+            ball_cx: 400.0,
+            ball_cy: 700.0,
+            ball_radius: 85.0,
+            brightness: 210,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 520.0,
+            ball_cy: 620.0,
+            ball_radius: 82.0,
+            brightness: 200,
+            time_offset_us: 700,
+        },
+        FrameSpec {
+            ball_cx: 680.0,
+            ball_cy: 520.0,
+            ball_radius: 78.0,
+            brightness: 195,
+            time_offset_us: 2500,
+        },
+        FrameSpec {
+            ball_cx: 900.0,
+            ball_cy: 400.0,
+            ball_radius: 74.0,
+            brightness: 185,
+            time_offset_us: 5500,
+        },
+        FrameSpec {
+            ball_cx: 1100.0,
+            ball_cy: 310.0,
+            ball_radius: 70.0,
+            brightness: 175,
+            time_offset_us: 7700,
+        },
     ];
     write_fixture(dir, &frames, "driver_shot");
 }
@@ -99,10 +219,34 @@ fn generate_iron7_shot(dir: &Path) {
     println!("Generating iron7_shot_001...");
     fs::create_dir_all(dir).unwrap();
     let frames = vec![
-        FrameSpec { ball_cx: 500.0, ball_cy: 750.0, ball_radius: 86.0, brightness: 215, time_offset_us: 0 },
-        FrameSpec { ball_cx: 580.0, ball_cy: 630.0, ball_radius: 83.0, brightness: 205, time_offset_us: 900 },
-        FrameSpec { ball_cx: 680.0, ball_cy: 490.0, ball_radius: 79.0, brightness: 195, time_offset_us: 2700 },
-        FrameSpec { ball_cx: 800.0, ball_cy: 340.0, ball_radius: 75.0, brightness: 185, time_offset_us: 5700 },
+        FrameSpec {
+            ball_cx: 500.0,
+            ball_cy: 750.0,
+            ball_radius: 86.0,
+            brightness: 215,
+            time_offset_us: 0,
+        },
+        FrameSpec {
+            ball_cx: 580.0,
+            ball_cy: 630.0,
+            ball_radius: 83.0,
+            brightness: 205,
+            time_offset_us: 900,
+        },
+        FrameSpec {
+            ball_cx: 680.0,
+            ball_cy: 490.0,
+            ball_radius: 79.0,
+            brightness: 195,
+            time_offset_us: 2700,
+        },
+        FrameSpec {
+            ball_cx: 800.0,
+            ball_cy: 340.0,
+            ball_radius: 75.0,
+            brightness: 185,
+            time_offset_us: 5700,
+        },
     ];
     write_fixture(dir, &frames, "iron7_shot");
 }
@@ -121,7 +265,11 @@ fn write_fixture(dir: &Path, frames: &[FrameSpec], name: &str) {
             "time_offset_us": f.time_offset_us
         })).collect::<Vec<_>>()
     });
-    fs::write(dir.join("metadata.json"), serde_json::to_string_pretty(&meta).unwrap()).unwrap();
+    fs::write(
+        dir.join("metadata.json"),
+        serde_json::to_string_pretty(&meta).unwrap(),
+    )
+    .unwrap();
 
     for (i, spec) in frames.iter().enumerate() {
         let image = render_frame(spec);
@@ -133,7 +281,9 @@ fn write_fixture(dir: &Path, frames: &[FrameSpec], name: &str) {
 fn render_frame(spec: &FrameSpec) -> Vec<u8> {
     let mut data = vec![15u8; WIDTH * HEIGHT];
     for y in (HEIGHT * 3 / 4)..HEIGHT {
-        for x in 0..WIDTH { data[y * WIDTH + x] = 25 + ((x * 7 + y * 13) % 15) as u8; }
+        for x in 0..WIDTH {
+            data[y * WIDTH + x] = 25 + ((x * 7 + y * 13) % 15) as u8;
+        }
     }
     let (cx, cy, r) = (spec.ball_cx, spec.ball_cy, spec.ball_radius);
     let y0 = (cy - r * 1.3).max(0.0) as usize;

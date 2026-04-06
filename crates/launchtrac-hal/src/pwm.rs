@@ -1,6 +1,6 @@
 use launchtrac_common::error::LaunchTracError;
 
-use crate::{PulseTiming, PwmStrobe};
+use crate::{PulseTiming, PwmStrobe, StrobeSafetyLimits};
 
 /// Hardware PWM strobe controller for Raspberry Pi 5.
 ///
@@ -8,11 +8,16 @@ use crate::{PulseTiming, PwmStrobe};
 /// providing sub-microsecond jitter vs the old ~8.7µs per SPI bit.
 ///
 /// Uses GPIO18 (PWM0) for IR LED control and GPIO25 for camera trigger.
+/// All pulse trains are validated against StrobeSafetyLimits before firing.
 pub struct PiPwmStrobe {
     /// GPIO pin for IR LED PWM (BCM 18)
     led_pin: u32,
     /// GPIO pin for camera external trigger (BCM 25)
     trigger_pin: u32,
+    /// Safety limits enforced on every pulse train
+    safety: StrobeSafetyLimits,
+    /// Timestamp of last burst (for cooldown enforcement)
+    last_burst: std::sync::Mutex<Option<std::time::Instant>>,
 }
 
 impl PiPwmStrobe {
@@ -23,7 +28,14 @@ impl PiPwmStrobe {
         Ok(Self {
             led_pin: Self::LED_PWM_PIN,
             trigger_pin: Self::CAMERA_TRIGGER_PIN,
+            safety: StrobeSafetyLimits::default(),
+            last_burst: std::sync::Mutex::new(None),
         })
+    }
+
+    pub fn with_safety_limits(mut self, limits: StrobeSafetyLimits) -> Self {
+        self.safety = limits;
+        self
     }
 
     /// Convert the LaunchTrac v1 strobe pulse vector format (inter-flash delays in ms)
@@ -45,6 +57,22 @@ impl PiPwmStrobe {
 
 impl PwmStrobe for PiPwmStrobe {
     fn send_pulse_train(&self, pulses: &[PulseTiming]) -> Result<(), LaunchTracError> {
+        // Enforce safety limits before any hardware interaction
+        self.safety.validate(pulses)?;
+
+        // Enforce burst cooldown
+        let mut last = self.last_burst.lock().unwrap();
+        if let Some(prev) = *last {
+            let elapsed = prev.elapsed();
+            let cooldown = std::time::Duration::from_millis(self.safety.min_burst_cooldown_ms);
+            if elapsed < cooldown {
+                return Err(LaunchTracError::Hardware(format!(
+                    "Burst cooldown: {}ms remaining",
+                    (cooldown - elapsed).as_millis()
+                )));
+            }
+        }
+
         tracing::debug!(
             pin = self.led_pin,
             pulse_count = pulses.len(),
@@ -56,9 +84,6 @@ impl PwmStrobe for PiPwmStrobe {
         //   1. Wait delay_us
         //   2. Set LED pin HIGH for duration_us
         //   3. Set LED pin LOW
-        //
-        // On Pi 5, this can use DMA-timed GPIO for precise timing:
-        //   lgpio::tx_pulse(handle, led_pin, duration_us, delay_us, ...)
 
         for (i, pulse) in pulses.iter().enumerate() {
             tracing::trace!(
@@ -69,6 +94,7 @@ impl PwmStrobe for PiPwmStrobe {
             );
         }
 
+        *last = Some(std::time::Instant::now());
         Ok(())
     }
 
