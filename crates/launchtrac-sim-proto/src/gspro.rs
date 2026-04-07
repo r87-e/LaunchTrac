@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
+use async_trait::async_trait;
 
 use launchtrac_common::error::LaunchTracError;
 use launchtrac_common::shot::{Heartbeat, ShotData};
@@ -299,9 +300,13 @@ impl super::SimulatorInterface for GsProInterface {
 mod tests {
     use super::*;
     use launchtrac_common::types::ClubType;
+    use tokio::net::TcpListener;
+    use tokio::io::AsyncBufReadExt;
+    use tokio::io::BufReader;
+    use std::net::SocketAddr;
 
-    #[test]
-    fn shot_message_format_matches_gspro_spec() {
+    #[tokio::test]
+    async fn shot_message_format_matches_gspro_spec() {
         let iface = GsProInterface::new("127.0.0.1");
         let shot = ShotData::new(
             1,
@@ -348,5 +353,39 @@ mod tests {
         assert_eq!(v["ShotDataOptions"]["ContainsBallData"], false);
         assert_eq!(v["ShotDataOptions"]["LaunchMonitorBallDetected"], true);
         assert_eq!(v["ShotDataOptions"]["LaunchMonitorIsReady"], true);
+    }
+
+    #[tokio::test]
+    async fn test_gspro_integration() -> Result<(), LaunchTracError> {
+        let listener = TcpListener::bind("127.0.0.1:921").await?;
+        let addr = listener.local_addr()?;
+
+        let mut iface = GsProInterface::new(addr.to_string());
+        iface.connect().await?;
+
+        let shot = ShotData::new(
+            1,
+            150.0,
+            12.5,
+            -1.2,
+            2800,
+            -200,
+            ClubType::Driver,
+            0.95,
+            250,
+        );
+
+        iface.send_shot(&shot).await?;
+
+        let mut stream = listener.accept().await?;
+        let mut reader = BufReader::new(stream.0);
+        let mut line = String::new();
+        reader.read_line(&mut line).await?;
+
+        let response: GsProResponse = serde_json::from_str(&line).unwrap();
+        assert_eq!(response.code, 0);
+
+        iface.disconnect().await?;
+        Ok(())
     }
 }
