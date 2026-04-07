@@ -4,7 +4,7 @@
 // Copyright (C) 2026, LaunchTrac contributors
 //
 // This file is part of LaunchTrac, a derivative work of PiTrac
-// (https://github.com/jeshernandez/PiTrac). Both projects are licensed
+// (https://github.com/PiTracLM/PiTrac). Both projects are licensed
 // under the GNU General Public License v2.0.
 //
 use launchtrac_common::shot::ShotData;
