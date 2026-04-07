@@ -59,20 +59,39 @@ impl CameraCalibration {
     /// Run auto-calibration using a golf ball at known position
     pub fn auto_calibrate(
         &mut self,
-        _ball_center_px: (f64, f64),
-        _ball_radius_px: f64,
-        _known_distance_cm: f64,
+        ball_center_px: (f64, f64),
+        ball_radius_px: f64,
+        known_distance_cm: f64,
     ) -> Result<(), LaunchTracError> {
-        // TODO: Using known ball diameter (42.67mm) and detected radius,
-        // refine focal length and distortion coefficients
-        tracing::info!("Auto-calibration not yet implemented");
+        let known_diameter_mm = 42.67;
+        let known_distance_mm = known_distance_cm * 10.0;
+
+        // Estimate focal length
+        self.focal_length_mm = (self.intrinsic_matrix[0] * known_distance_mm) / (2.0 * ball_radius_px);
+
+        // Update intrinsic matrix with new focal length
+        self.intrinsic_matrix[0] = self.focal_length_mm;
+        self.intrinsic_matrix[4] = self.focal_length_mm;
+
+        tracing::info!("Auto-calibration completed. Focal length: {}mm", self.focal_length_mm);
         Ok(())
     }
 
     /// Convert pixel coordinates to real-world 3D position (meters)
-    pub fn pixel_to_world(&self, _px: f64, _py: f64, _radius_px: f64) -> (f64, f64, f64) {
-        // TODO: Use intrinsic matrix + known ball size to triangulate
-        // distance = (focal_length * real_diameter) / (pixel_diameter * sensor_pixel_size)
-        (0.0, 0.0, 0.0)
+    pub fn pixel_to_world(&self, px: f64, py: f64, radius_px: f64) -> (f64, f64, f64) {
+        let fx = self.intrinsic_matrix[0];
+        let fy = self.intrinsic_matrix[4];
+        let cx = self.intrinsic_matrix[2];
+        let cy = self.intrinsic_matrix[5];
+
+        let real_diameter_mm = 42.67;
+        let distance_mm = (fx * real_diameter_mm) / (radius_px * 0.001); //sensor pixel size assumed to be 0.001mm
+        let distance_m = distance_mm / 1000.0;
+
+        let x = (px - cx) * distance_m / fx;
+        let y = (py - cy) * distance_m / fy;
+        let z = distance_m;
+
+        (x, y, z)
     }
 }
