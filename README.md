@@ -206,11 +206,11 @@ This is an early-stage rewrite. The pipeline works end-to-end on synthetic data.
 
 ## Acknowledgments
 
-Inspired by [PiTrac](https://github.com/jeshernandez/PiTrac), the world's first fully open-source DIY golf launch monitor.
+Inspired by [PiTrac](https://github.com/PiTracLM/PiTrac), the world's first fully open-source DIY golf launch monitor.
 
 ## Attribution
 
-LaunchTrac is a derivative work of [PiTrac](https://github.com/jeshernandez/PiTrac), the world's first fully open-source DIY golf launch monitor, created by James Pilgrim and contributors at Verdant Consultants, LLC. See [NOTICE.md](NOTICE.md) for details.
+LaunchTrac is a derivative work of [PiTrac](https://github.com/PiTracLM/PiTrac), the world's first fully open-source DIY golf launch monitor, created by James Pilgrim and contributors at Verdant Consultants, LLC. See [NOTICE.md](NOTICE.md) for details.
 
 ## License
 
